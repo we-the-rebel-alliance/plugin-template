@@ -68,6 +68,21 @@ const CHANNELS: Readonly<Record<string, readonly Channel[]>> = {
 
 type Draft = Omit<EventDraft, "source" | "account">
 
+/** Where a cursor resumes: the time and id of the last listed event, so one pair names one place in the feed. */
+type Position = readonly [occurred_at: string, external_id: string]
+
+/** The provider's order: by time, then by id, so two events at one time still have a stable page boundary. */
+function comparePositions(left: Pick<SourceEvent, "occurred_at" | "external_id">, right: Pick<SourceEvent, "occurred_at" | "external_id">): number {
+  const time = Date.parse(left.occurred_at) - Date.parse(right.occurred_at)
+  if (time !== 0) return time
+  return left.external_id < right.external_id ? -1 : left.external_id > right.external_id ? 1 : 0
+}
+
+/** A cursor's `after`: the pair this source wrote, or `null` when it has listed nothing. */
+function isPosition(value: unknown): value is Position {
+  return Array.isArray(value) && value.length === 2 && typeof value[0] === "string" && typeof value[1] === "string"
+}
+
 const MESSAGES: Readonly<Record<string, readonly Draft[]>> = {
   default: [
     {
@@ -127,6 +142,28 @@ const MESSAGES: Readonly<Record<string, readonly Draft[]>> = {
       url: "https://files.example.com/messages/m-work-4",
       labels: ["channel:C2", "inbox"],
     },
+    {
+      external_id: "m-work-tie-a",
+      kind: "message",
+      occurred_at: "2026-11-05T12:00:00.000Z",
+      thread: "thread:m-work-tie",
+      actors: [{ role: "from", id: "mailto:teammate@example.test", name: "Teammate" }],
+      title: "The first message at one time",
+      text: "Two messages share a timestamp; the cursor keeps their order.",
+      url: "https://files.example.com/messages/m-work-tie-a",
+      labels: ["channel:C1", "inbox"],
+    },
+    {
+      external_id: "m-work-tie-b",
+      kind: "message",
+      occurred_at: "2026-11-05T12:00:00.000Z",
+      thread: "thread:m-work-tie",
+      actors: [{ role: "from", id: "mailto:work@example.test", name: "Work" }],
+      title: "The second message at one time",
+      text: "The time and id together resume after the first.",
+      url: "https://files.example.com/messages/m-work-tie-b",
+      labels: ["channel:C1", "inbox"],
+    },
   ],
   personal: [
     {
@@ -178,7 +215,7 @@ export function createProvider(options: { readonly plugin: string; readonly pack
   const events = (account: string): SourceEvent[] => {
     const drafts = MESSAGES[account]
     if (drafts === undefined) throw new SourceError({ code: "ACCOUNT_UNKNOWN", what: `${account} is not an account of ${options.plugin}`, next: "Use one of the aliases in the plugin's accounts option." })
-    return drafts.map((draft) => makeEvent({ ...draft, source: SOURCE, account }))
+    return drafts.map((draft) => makeEvent({ ...draft, source: SOURCE, account })).sort(comparePositions)
   }
 
   const inScope = (event: SourceEvent, scope: EventsListRequest["scope"]): boolean => {
@@ -193,7 +230,7 @@ export function createProvider(options: { readonly plugin: string; readonly pack
     owner,
     page({ account, request, now, maxBytes }) {
       const binding = { plugin: options.plugin, source: SOURCE, account, ...(request.scope === undefined ? {} : { scope: request.scope }) }
-      let after: string | null | undefined
+      let after: Position | null | undefined
       if (request.cursor !== undefined) {
         const decoded = decodeBoundCursor(binding, request.cursor)
         if (!decoded.ok) {
@@ -203,16 +240,19 @@ export function createProvider(options: { readonly plugin: string; readonly pack
             next: "Read again without the cursor to start a fresh window.",
           })
         }
-        const state = decoded.state.after
-        if (state !== null && typeof state !== "string") {
+        const position = decoded.state.after
+        if (position === null) {
+          after = null
+        } else if (isPosition(position)) {
+          after = position
+        } else {
           throw new SourceError({ code: "CURSOR_INVALID", what: "the cursor holds no position this source can read", next: "Read again without the cursor to start a fresh window." })
         }
-        after = state
       }
       const since = after === undefined ? startTime(request, now) : undefined
       const remaining = events(account).filter((event) => {
         if (!inScope(event, request.scope)) return false
-        if (after !== undefined) return after !== null && Date.parse(event.occurred_at) > Date.parse(after)
+        if (after !== undefined) return after !== null && comparePositions(event, { occurred_at: after[0], external_id: after[1] }) > 0
         return since !== undefined && Date.parse(event.occurred_at) >= since
       })
       // One page is bounded by the call's limit and the source's maxBytes, through the contract's own fit.
@@ -220,7 +260,7 @@ export function createProvider(options: { readonly plugin: string; readonly pack
       const listed = remaining.slice(0, fit)
       const more = remaining.length > fit
       const last = listed.at(-1)
-      const cursor = encodeBoundCursor(binding, { after: last?.occurred_at ?? after ?? null })
+      const cursor = encodeBoundCursor(binding, { after: last === undefined ? (after ?? null) : [last.occurred_at, last.external_id] })
       // Provider text is data, never instructions: a secret or instruction-shaped item from someone else is refused for good.
       const signedIn = owner(account)
       const screened = screenEvents(listed, {

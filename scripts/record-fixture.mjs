@@ -21,6 +21,9 @@ const workPage = await page({ source: sourceName, account: "work", since })
 const personalPage = await page({ source: sourceName, account: "personal", since })
 const scopedPage = await page({ source: sourceName, account: "work", since, scope: { channels: ["C1"] } })
 const emptyPage = await page({ source: sourceName, account: "work", since: "2026-11-20T00:00:00.000Z" })
+// Two messages share a timestamp: the first page lists one, and its cursor lists the other.
+const tieFirst = await page({ source: sourceName, account: "work", since: "2026-11-05T00:00:00.000Z", limit: 1 })
+const tieSecond = await page({ source: sourceName, account: "work", cursor: tieFirst.cursor })
 
 async function refusal(input, chosen = account) {
   try {
@@ -55,6 +58,8 @@ const fixture = {
         { name: "a personal page", input: { source: sourceName, account: "personal", since }, expect: "page", answer: personalPage },
         { name: "only the confirmed channels", input: { source: sourceName, account: "work", since, scope: { channels: ["C1"] } }, expect: "page", answer: scopedPage },
         { name: "an empty window", input: { source: sourceName, account: "work", since: "2026-11-20T00:00:00.000Z" }, expect: "empty", answer: emptyPage },
+        { name: "one event at a time, the first of a tie", input: { source: sourceName, account: "work", since: "2026-11-05T00:00:00.000Z", limit: 1 }, expect: "page", answer: tieFirst },
+        { name: "the cursor after the first of a tie lists the second", input: { source: sourceName, account: "work", cursor: tieFirst.cursor }, expect: "page", answer: tieSecond },
         {
           name: "another account's cursor is refused",
           input: { source: sourceName, account: "personal", cursor: workPage.cursor },

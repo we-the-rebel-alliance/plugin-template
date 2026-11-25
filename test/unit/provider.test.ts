@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
+import { encodeBoundCursor } from "@we-the-rebel-alliance/plugin-contract/cursor"
 import { MAX_PAGE_BYTES, SourceError, type EventsListRequest } from "@we-the-rebel-alliance/plugin-contract/events"
 import { createProvider, SOURCE } from "../../src/provider/client.ts"
 import { NOW } from "../support/handlers.ts"
@@ -30,7 +31,7 @@ test("the work page is one account's messages, oldest first, marked untrusted", 
   assert.equal(answer.plugin, "@we-the-rebel-alliance/example-plugin")
   assert.equal(answer.owner.id, "mailto:work@example.test")
   assert.equal(answer.trust, "untrusted")
-  assert.equal(answer.events.length, 3)
+  assert.equal(answer.events.length, 5)
   const times = answer.events.map((event) => Date.parse(event.occurred_at))
   assert.deepEqual(times, [...times].sort((left, right) => left - right))
   assert.equal(answer.more, false)
@@ -44,7 +45,7 @@ test("instruction-shaped text from someone else is refused, not delivered", () =
 
 test("the scope keeps only the confirmed channels", () => {
   const answer = page("work", request({ since: Date.parse("2026-11-01T00:00:00.000Z"), scope: { channels: ["C1"] } }))
-  assert.deepEqual(answer.events.map((event) => event.external_id), ["m-work-1", "m-work-2"])
+  assert.deepEqual(answer.events.map((event) => event.external_id), ["m-work-1", "m-work-2", "m-work-tie-a", "m-work-tie-b"])
   assert.deepEqual(answer.scope, { channels: ["C1"] })
 })
 
@@ -59,18 +60,36 @@ test("a cursor lists what follows, and the last page says there is no more", () 
   assert.deepEqual(first.events.map((event) => event.external_id), ["m-work-1", "m-work-2"])
   assert.equal(first.more, true)
   const second = page("work", request({ cursor: first.cursor }))
-  assert.deepEqual(second.events.map((event) => event.external_id), ["m-work-3"])
+  assert.deepEqual(second.events.map((event) => event.external_id), ["m-work-3", "m-work-tie-a", "m-work-tie-b"])
   assert.equal(second.more, false)
 })
 
-test("a page is fitted to the source's maxBytes, and its cursor covers what it delivered", () => {
-  const since = Date.parse("2026-11-01T00:00:00.000Z")
-  const first = page("work", request({ since }), 2_100)
-  assert.ok(first.events.length < 3)
+test("events at one time keep their order across a page boundary, with none skipped or repeated", () => {
+  const first = page("work", request({ since: Date.parse("2026-11-05T00:00:00.000Z"), limit: 1 }))
+  assert.deepEqual(first.events.map((event) => event.external_id), ["m-work-tie-a"])
   assert.equal(first.more, true)
   const second = page("work", request({ cursor: first.cursor }))
-  assert.equal(first.events.length + second.events.length, 3)
-  assert.ok(first.events.every((event) => !second.events.some((other) => other.external_id === event.external_id)))
+  assert.deepEqual(second.events.map((event) => event.external_id), ["m-work-tie-b"])
+  assert.equal(second.more, false)
+  const ids = [...first.events, ...second.events].map((event) => event.external_id)
+  assert.deepEqual(ids, ["m-work-tie-a", "m-work-tie-b"])
+  assert.equal(new Set(ids).size, ids.length)
+})
+
+test("a page is fitted to the source's maxBytes, and its cursor covers what it delivered", () => {
+  const first = page("work", request({ since: Date.parse("2026-11-01T00:00:00.000Z") }), 2_100)
+  assert.ok(first.events.length < 5)
+  assert.equal(first.more, true)
+  const ids = first.events.map((event) => event.external_id)
+  let cursor = first.cursor
+  let more: boolean = first.more
+  while (more) {
+    const next = page("work", request({ cursor }), 2_100)
+    ids.push(...next.events.map((event) => event.external_id))
+    cursor = next.cursor
+    more = next.more
+  }
+  assert.deepEqual(ids, ["m-work-1", "m-work-2", "m-work-3", "m-work-tie-a", "m-work-tie-b"])
 })
 
 test("a cursor another account holds is refused, not restarted", () => {
@@ -80,6 +99,14 @@ test("a cursor another account holds is refused, not restarted", () => {
 
 test("a malformed cursor is refused", () => {
   assert.equal(refusalCode(() => page("work", request({ cursor: "not-a-cursor" }))), "CURSOR_INVALID")
+})
+
+test("a cursor whose position is not a time-and-id pair is refused", () => {
+  const binding = { plugin: "example", source: SOURCE, account: "work" }
+  for (const after of ["2026-11-05T12:00:00.000Z", ["2026-11-05T12:00:00.000Z"], ["2026-11-05T12:00:00.000Z", 7], { at: "2026-11-05T12:00:00.000Z" }]) {
+    const cursor = encodeBoundCursor(binding, { after })
+    assert.equal(refusalCode(() => page("work", request({ cursor }))), "CURSOR_INVALID")
+  }
 })
 
 test("a scope another account's cursor was bound to is refused", () => {

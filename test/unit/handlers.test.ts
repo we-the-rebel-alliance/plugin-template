@@ -71,7 +71,7 @@ test("events_list answers a page the consumer's own check accepts", async () => 
   const accepted = acceptAnswer(source, "work", answer)
   if (!accepted.ok) throw new Error(accepted.failure.message)
   assert.equal(accepted.kind, "events")
-  assert.equal(accepted.page.events.length, 3)
+  assert.equal(accepted.page.events.length, 5)
 })
 
 test("events_list refuses an unknown source, an unknown scope key and an invalid limit", async () => {

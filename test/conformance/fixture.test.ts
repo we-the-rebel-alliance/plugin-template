@@ -61,6 +61,21 @@ test("every recorded page is what the handlers answer today", async () => {
   }
 })
 
+test("the tie cases page two messages at one time, and their union is exactly both", () => {
+  const answerOfCase = (name: string): ReadonlyArray<{ readonly external_id: string }> => {
+    const item = recorded.cases.find((candidate) => candidate.name === name)
+    assert.ok(item !== undefined && typeof item.answer === "object" && item.answer !== null, name)
+    return (item.answer as { readonly events: ReadonlyArray<{ readonly external_id: string }> }).events
+  }
+  const first = answerOfCase("one event at a time, the first of a tie")
+  const second = answerOfCase("the cursor after the first of a tie lists the second")
+  assert.deepEqual(first.map((event) => event.external_id), ["m-work-tie-a"])
+  assert.deepEqual(second.map((event) => event.external_id), ["m-work-tie-b"])
+  const ids = [...first, ...second].map((event) => event.external_id)
+  assert.deepEqual(ids, ["m-work-tie-a", "m-work-tie-b"])
+  assert.equal(new Set(ids).size, ids.length)
+})
+
 test("the recorded probe and suggest answers are what the handlers answer today", async () => {
   const probe = withoutAccount(recorded.probe.input)
   assert.deepEqual(await run(runtime, "probe", probe.input, probe.account), recorded.probe.answer)
