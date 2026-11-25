@@ -111,9 +111,55 @@
                   "inbox"
                 ],
                 "hash": "sha256:1e97cd5f944be0be3272d2b119b3a0fa0e54289edf073f53ac3776788b7a6e09"
+              },
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-tie-a",
+                "kind": "message",
+                "occurred_at": "2026-11-05T12:00:00.000Z",
+                "thread": "thread:m-work-tie",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:teammate@example.test",
+                    "name": "Teammate"
+                  }
+                ],
+                "title": "The first message at one time",
+                "text": "Two messages share a timestamp; the cursor keeps their order.",
+                "url": "https://files.example.com/messages/m-work-tie-a",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:2cab8cd6687737db8b92b9bf6c916bc7ca3140e8cca8d88f882cc9756496452c"
+              },
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-tie-b",
+                "kind": "message",
+                "occurred_at": "2026-11-05T12:00:00.000Z",
+                "thread": "thread:m-work-tie",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:work@example.test",
+                    "name": "Work"
+                  }
+                ],
+                "title": "The second message at one time",
+                "text": "The time and id together resume after the first.",
+                "url": "https://files.example.com/messages/m-work-tie-b",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:d0da52fa01aa0dbf5b7dd458d93f4f4c5c203c85ceae3fa31f9b5ad9c1be3f9c"
               }
             ],
-            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjoiMjAyNi0xMS0wNFQwOTowMDowMC4wMDBaIn0",
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjpbIjIwMjYtMTEtMDVUMTI6MDA6MDAuMDAwWiIsIm0td29yay10aWUtYiJdfQ",
             "more": false,
             "trust": "untrusted",
             "refused": [
@@ -166,7 +212,7 @@
                 "hash": "sha256:e90bc017c0592cdd1a57f1d1876fa3ca033c64c6eddc0796da4a4ad1ba1d56d9"
               }
             ],
-            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiM2M5MDNmNGE1NmU5MTU0YSIsImFmdGVyIjoiMjAyNi0xMS0wMVQxMjowMDowMC4wMDBaIn0",
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiM2M5MDNmNGE1NmU5MTU0YSIsImFmdGVyIjpbIjIwMjYtMTEtMDFUMTI6MDA6MDAuMDAwWiIsIm0tcGVyc29uYWwtMSJdfQ",
             "more": false,
             "trust": "untrusted",
             "plugin": "@we-the-rebel-alliance/example-plugin",
@@ -239,9 +285,55 @@
                   "inbox"
                 ],
                 "hash": "sha256:3537824131f7429b68f9000da575943e3bf25fe42240dae9c6fe28021eca9a9b"
+              },
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-tie-a",
+                "kind": "message",
+                "occurred_at": "2026-11-05T12:00:00.000Z",
+                "thread": "thread:m-work-tie",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:teammate@example.test",
+                    "name": "Teammate"
+                  }
+                ],
+                "title": "The first message at one time",
+                "text": "Two messages share a timestamp; the cursor keeps their order.",
+                "url": "https://files.example.com/messages/m-work-tie-a",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:2cab8cd6687737db8b92b9bf6c916bc7ca3140e8cca8d88f882cc9756496452c"
+              },
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-tie-b",
+                "kind": "message",
+                "occurred_at": "2026-11-05T12:00:00.000Z",
+                "thread": "thread:m-work-tie",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:work@example.test",
+                    "name": "Work"
+                  }
+                ],
+                "title": "The second message at one time",
+                "text": "The time and id together resume after the first.",
+                "url": "https://files.example.com/messages/m-work-tie-b",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:d0da52fa01aa0dbf5b7dd458d93f4f4c5c203c85ceae3fa31f9b5ad9c1be3f9c"
               }
             ],
-            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOTE0NmY0ZTIxYjdhOTE2ZiIsImFmdGVyIjoiMjAyNi0xMS0wMlQxMDozMDowMC4wMDBaIn0",
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOTE0NmY0ZTIxYjdhOTE2ZiIsImFmdGVyIjpbIjIwMjYtMTEtMDVUMTI6MDA6MDAuMDAwWiIsIm0td29yay10aWUtYiJdfQ",
             "more": false,
             "trust": "untrusted",
             "scope": {
@@ -277,11 +369,106 @@
           }
         },
         {
+          "name": "one event at a time, the first of a tie",
+          "input": {
+            "source": "messages",
+            "account": "work",
+            "since": "2026-11-05T00:00:00.000Z",
+            "limit": 1
+          },
+          "expect": "page",
+          "answer": {
+            "source": "messages",
+            "account": "work",
+            "owner": {
+              "id": "mailto:work@example.test",
+              "label": "Work"
+            },
+            "events": [
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-tie-a",
+                "kind": "message",
+                "occurred_at": "2026-11-05T12:00:00.000Z",
+                "thread": "thread:m-work-tie",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:teammate@example.test",
+                    "name": "Teammate"
+                  }
+                ],
+                "title": "The first message at one time",
+                "text": "Two messages share a timestamp; the cursor keeps their order.",
+                "url": "https://files.example.com/messages/m-work-tie-a",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:2cab8cd6687737db8b92b9bf6c916bc7ca3140e8cca8d88f882cc9756496452c"
+              }
+            ],
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjpbIjIwMjYtMTEtMDVUMTI6MDA6MDAuMDAwWiIsIm0td29yay10aWUtYSJdfQ",
+            "more": true,
+            "trust": "untrusted",
+            "plugin": "@we-the-rebel-alliance/example-plugin",
+            "asOf": "2026-11-25T09:00:00.000Z"
+          }
+        },
+        {
+          "name": "the cursor after the first of a tie lists the second",
+          "input": {
+            "source": "messages",
+            "account": "work",
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjpbIjIwMjYtMTEtMDVUMTI6MDA6MDAuMDAwWiIsIm0td29yay10aWUtYSJdfQ"
+          },
+          "expect": "page",
+          "answer": {
+            "source": "messages",
+            "account": "work",
+            "owner": {
+              "id": "mailto:work@example.test",
+              "label": "Work"
+            },
+            "events": [
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-tie-b",
+                "kind": "message",
+                "occurred_at": "2026-11-05T12:00:00.000Z",
+                "thread": "thread:m-work-tie",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:work@example.test",
+                    "name": "Work"
+                  }
+                ],
+                "title": "The second message at one time",
+                "text": "The time and id together resume after the first.",
+                "url": "https://files.example.com/messages/m-work-tie-b",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:d0da52fa01aa0dbf5b7dd458d93f4f4c5c203c85ceae3fa31f9b5ad9c1be3f9c"
+              }
+            ],
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjpbIjIwMjYtMTEtMDVUMTI6MDA6MDAuMDAwWiIsIm0td29yay10aWUtYiJdfQ",
+            "more": false,
+            "trust": "untrusted",
+            "plugin": "@we-the-rebel-alliance/example-plugin",
+            "asOf": "2026-11-25T09:00:00.000Z"
+          }
+        },
+        {
           "name": "another account's cursor is refused",
           "input": {
             "source": "messages",
             "account": "personal",
-            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjoiMjAyNi0xMS0wNFQwOTowMDowMC4wMDBaIn0"
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjpbIjIwMjYtMTEtMDVUMTI6MDA6MDAuMDAwWiIsIm0td29yay10aWUtYiJdfQ"
           },
           "expect": "CURSOR_INVALID",
           "refuses": "CURSOR_INVALID: the cursor belongs to another plugin, source, account or scope. Next step: Read again without the cursor to start a fresh window."

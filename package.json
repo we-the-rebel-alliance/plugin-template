@@ -8,6 +8,10 @@
     "type": "git",
     "url": "git+https://github.com/we-the-rebel-alliance/example-plugin.git"
   },
+  "homepage": "https://github.com/we-the-rebel-alliance/example-plugin#readme",
+  "bugs": {
+    "url": "https://github.com/we-the-rebel-alliance/example-plugin/issues"
+  },
   "engines": {
     "node": ">=24"
   },

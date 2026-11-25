@@ -4,9 +4,9 @@
 #   scripts/new-plugin.sh <name>
 #
 # <name> is the plugin id: 2 to 31 lowercase letters or digits, as contract §3 defines it. The script renames the
-# package, the repository URL, the plugin id and title, the capability ids, the skill directory, the fake hosts and the
-# lockfile's root name. It also removes the template-only sections and itself, so the copy no longer describes itself as
-# a template. A second run fails because the placeholders are already gone.
+# package, the repository, homepage and bugs URLs, the plugin id and title, the capability ids, the skill directory, the
+# fake hosts and the lockfile's root name. It also removes the template-only sections and itself, so the copy no longer
+# describes itself as a template. A second run fails because the placeholders are already gone.
 set -euo pipefail
 
 usage() {
@@ -152,6 +152,14 @@ for (const path of files) {
 // Write only after every file passed, so a failed rename leaves the tree as it was.
 for (const [path, next] of writes) writeFileSync(path, next)
 
+// The package's repository, homepage and bugs name the new repository, whether or not the template carried them.
+const pkg = JSON.parse(readFileSync("package.json", "utf8"))
+pkg.name = packageName
+pkg.repository = { type: "git", url: `git+https://github.com/we-the-rebel-alliance/${name}-plugin.git` }
+pkg.homepage = `https://github.com/we-the-rebel-alliance/${name}-plugin#readme`
+pkg.bugs = { url: `https://github.com/we-the-rebel-alliance/${name}-plugin/issues` }
+writeFileSync("package.json", `${JSON.stringify(pkg, null, 2)}\n`)
+
 // The lockfile's root name is the package name; npm ci reads it.
 if (existsSync("package-lock.json")) {
   const lock = JSON.parse(readFileSync("package-lock.json", "utf8"))
@@ -193,4 +201,5 @@ rm -f -- "$script_path"
 
 echo "new-plugin: ${package_name}, plugin id ${name}, title ${title}, skill skills/${name}"
 echo "new-plugin: removed scripts/new-plugin.sh and the template-only sections."
-echo "new-plugin: replace the copyright holder in LICENSE and the owner in .github/CODEOWNERS."
+echo "new-plugin: date CHANGELOG.md's first heading as '## 0.0.0 (YYYY-MM-DD)' when the first release is cut."
+echo "new-plugin: replace the copyright holder in LICENSE; adjust .github/CODEOWNERS only for the plugin's own teams."
