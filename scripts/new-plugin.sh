@@ -181,8 +181,10 @@ fi
 
 # dist/index.js is committed, because a tag installs with no build. The renamed sources need a fresh bundle, or the
 # copy would install the template's example bundle.
+bundled=0
 if [[ -d node_modules/esbuild ]]; then
   npm run bundle
+  bundled=1
 else
   echo "new-plugin: run npm ci && npm run bundle to rebuild dist/index.js for ${name}." >&2
 fi
@@ -209,6 +211,10 @@ rm -f -- "$script_path"
 
 echo "new-plugin: ${package_name}, plugin id ${name}, title ${title}, skill skills/${name}"
 echo "new-plugin: removed scripts/new-plugin.sh and the template-only sections."
-echo "new-plugin: commit dist/index.js with the rename; a tag installs it with no build."
+if [[ "$bundled" == 1 ]]; then
+  echo "new-plugin: commit dist/index.js with the rename; a tag installs it with no build."
+else
+  echo "new-plugin: after npm run bundle, commit dist/index.js; a tag installs it with no build."
+fi
 echo "new-plugin: date CHANGELOG.md's first heading as '## 0.0.0 (YYYY-MM-DD)' when the first release is cut."
 echo "new-plugin: replace the copyright holder in LICENSE; adjust .github/CODEOWNERS only for the plugin's own teams."
