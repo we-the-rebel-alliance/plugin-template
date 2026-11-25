@@ -65,13 +65,15 @@ jobs:
           "$HOME/.opencode/bin/opencode" --version
       - name: Install the pushed commit as an OpenCode plugin
         env:
-          # The pull request's merge commit is not fetchable from a plain clone; install the pushed head instead.
+          # The pull request's merge commit is not fetchable from a plain clone; install the pushed head instead. A
+          # fork's head lives in the fork, this repository's head here.
+          REPO: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
           GITHUB_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
         run: |
           set -euo pipefail
           export HOME="$RUNNER_TEMP/plugin-home"
           export PATH="$HOME/.opencode/bin:$PATH"
-          opencode plugin add "github:we-the-rebel-alliance/plugin-template#${GITHUB_SHA}"
+          opencode plugin add "github:${REPO}#${GITHUB_SHA}"
           entry="$(find "$HOME/.cache/opencode/npm" -path '*/node_modules/*/dist/index.js' -print -quit)"
           test -n "$entry" || { echo "the installed package carries no dist/index.js" >&2; exit 1; }
           echo "the installed package carries $entry"
