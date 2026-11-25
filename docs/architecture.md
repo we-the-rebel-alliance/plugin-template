@@ -60,6 +60,11 @@ agents from `call.unguardedAgents()`.
 
 ## Build
 
-`scripts/build.mjs` bundles `src/index.ts` into `dist/index.js` with esbuild. `@opencode/*` stays external, because
-OpenCode provides it; the contract modules are bundled, so an install needs no build. `dist/` is generated and is not
-committed.
+`npm run bundle` runs `scripts/build.mjs`, which bundles `src/index.ts` into `dist/index.js` with esbuild. `@opencode/*`
+stays external, because OpenCode provides it; the contract modules are bundled, so an install needs no build.
+
+`dist/` is committed, because a tag must install with no build. npm prepares a git dependency that declares a `build`,
+`prepare`, `prepack`, `preinstall`, `install` or `postinstall` script by running `npm install` inside the repository, and
+OpenCode 2.4.1's bundled npm fails at that with `git dep preparation failed`. The template declares none of those
+scripts and ships the bundle. CI runs `npm run bundle && git diff --exit-code dist/`, so the committed file is exactly
+what the sources produce; never edit it by hand.

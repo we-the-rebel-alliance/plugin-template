@@ -21,14 +21,23 @@ npm run check
 |---|---|
 | `npm run lint` | `@biomejs/biome` finds no lint problem |
 | `npm run typecheck` | the sources and tests typecheck under strict settings |
-| `npm run build` | `dist/index.js` is built from `src/index.ts` with esbuild |
+| `npm run bundle` | `dist/index.js` is bundled from `src/index.ts` with esbuild |
 | `npm test` | the unit tests, the recorded fixture and the `assertHost` gate |
 | `npm run pack` | the tarball holds `package.json`, `dist/index.js`, the skill, the assets, `README.md` and `LICENSE` |
 | `plugin-kit check` | conformance T0 and T1, the doc file set, the forbidden patterns and no bundled kit |
 | `plugin-kit docs --check` | every generated doc section matches the manifest |
 
-CI runs the same steps in one job named `ci`. `dist/` is generated and is not committed, so CI builds it before it
-packs the tarball and runs `plugin-kit check`.
+CI runs the same steps in one job named `ci`. A second job, `install`, installs the pushed commit with OpenCode's own
+installer in an isolated HOME and proves the installed package carries `dist/index.js`.
+
+## The committed bundle
+
+`dist/index.js` is committed. The contract's rule is that a tag installs with no build, and that is also what npm
+requires of a git dependency: npm prepares a repository that declares a `build`, `prepare`, `prepack`, `preinstall`,
+`install` or `postinstall` script by running `npm install` inside it, and OpenCode 2.4.1's bundled npm cannot do that,
+so the install fails with `git dep preparation failed`. The template therefore has no such script, ships the bundle in
+`dist/`, and CI runs `npm run bundle && git diff --exit-code dist/` so the committed file is exactly the one the sources
+produce. Run `npm run bundle` after changing `src/`, commit the result with the change, and never edit `dist/` by hand.
 
 ## The contract pin
 
@@ -68,8 +77,8 @@ Releases are tags, not npm packages. A release is prepared in one pull request,
 `npx plugin-kit docs` if the manifest changed. The released heading is `## X.Y.Z (YYYY-MM-DD)`; the template's first
 release heading becomes `## 0.0.0 (YYYY-MM-DD)` with the real date, for example `## 0.0.0 (2026-11-25)`. The template
 keeps `## 0.0.0 (unreleased)` until its first release is dated. The owner pushes
-the tag after `master`'s CI passed; the release workflow checks the tag, builds, and creates the GitHub release with the
-packed tarball, the conformance report and `SHA256SUMS`.
+the tag after `master`'s CI passed; the release workflow checks the tag, packs the committed bundle, and creates the
+GitHub release with the tarball, the conformance report and `SHA256SUMS`.
 
 ## Template
 
