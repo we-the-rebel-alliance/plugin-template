@@ -4,8 +4,8 @@ import { test } from "node:test"
 import { SourceError } from "@we-the-rebel-alliance/plugin-contract/events"
 import { findSource } from "@we-the-rebel-alliance/plugin-contract/manifest"
 import { acceptAnswer } from "@we-the-rebel-alliance/plugin-contract/read"
-import { manifest, packageName } from "../src/manifest.ts"
-import { run, runtimeFor } from "./support/handlers.ts"
+import { manifest, packageName, sourceId } from "../../src/manifest.ts"
+import { run, runtimeFor } from "../support/handlers.ts"
 
 interface RecordedCase {
   readonly name: string
@@ -23,11 +23,12 @@ interface Fixture {
   readonly events: { readonly emitted: readonly string[]; readonly status: unknown }
 }
 
-const fixture = JSON.parse(readFileSync(new URL("../fixtures/conformance.json", import.meta.url), "utf8")) as Fixture
+const fixture = JSON.parse(readFileSync(new URL("../../fixtures/conformance.json", import.meta.url), "utf8")) as Fixture
 const runtime = runtimeFor()
-const source = findSource(manifest, "example.messages")
-const recorded = fixture.sources["example.messages"]
-if (recorded === undefined) throw new Error("fixtures/conformance.json records no example.messages source")
+const source = findSource(manifest, sourceId)
+const recorded = fixture.sources[sourceId]
+if (source === undefined) throw new Error(`the manifest declares no ${sourceId} source`)
+if (recorded === undefined) throw new Error(`fixtures/conformance.json records no ${sourceId} source`)
 
 /** The input a handler sees: register removes the account selector. */
 function withoutAccount(input: Readonly<Record<string, unknown>>): { readonly account: string; readonly input: Record<string, unknown> } {
@@ -40,8 +41,6 @@ test("the fixture was recorded for this package and names the real two-account r
   assert.equal(fixture.namespace, manifest.plugin.summary)
   assert.equal(fixture.accounts.real, true)
   assert.deepEqual(fixture.accounts.aliases, ["work", "personal"])
-  assert.ok(source !== undefined)
-  assert.ok(recorded !== undefined)
 })
 
 test("every recorded page is what the handlers answer today", async () => {
@@ -57,7 +56,7 @@ test("every recorded page is what the handlers answer today", async () => {
     }
     const answer = await run(runtime, "events_list", input, account)
     assert.deepEqual(answer, item.answer, item.name)
-    const accepted = acceptAnswer(source!, account, answer)
+    const accepted = acceptAnswer(source, account, answer)
     if (!accepted.ok) throw new Error(`${item.name}: ${accepted.failure.message}`)
   }
 })

@@ -29,15 +29,18 @@ None.
 
 ## Notes
 
-- **`status`** reads no account. It reports the plugin's version, the OpenCode host, one entry per alias and any next
-  step. It carries no content and no credential.
+- **`status`** reads no account. It reports the plugin's version, the OpenCode host, one entry per alias, the agents
+  whose rules miss the generated ones and any next step. It carries no content, no credential and no state kept after
+  `register`.
 - **`probe`** reads one account's owner and the provider sign-in's scopes. It reads no messages.
 - **`events_list`** reads the `messages` source for one account, oldest first, within the confirmed channels. A cursor is
-  bound to the plugin, source, account and scope; another account's cursor is `CURSOR_INVALID`.
+  bound to the plugin, source, account and scope; another account's cursor is `CURSOR_INVALID`. One page is bounded by
+  the call's `limit` and the source's `maxBytes`.
 - **`list_channels`** is the bind-time read behind the source's scope. It lists at most 64 channels, each `{ id, label }`.
 - **The source** is `example.messages`: an events feed of `message` items, private, free, 64 KB per answer. Its URLs are
   on `files.example.com`.
 - **No actions and no bus events.** This template writes nothing and receives no push, so it has nothing to confirm and
-  no `changed` nudge to send. Add both together when you add a write.
+  no `changed` nudge to send. Add both together when you add a write: a planning read that previews `output`, `reaches`,
+  `changes`, `cost` and `trust`, then a commit that receives `call.plan`.
 - **The provider is a fake.** Every owner, channel and message is invented and deterministic; see
   [architecture](architecture.md).

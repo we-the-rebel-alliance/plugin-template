@@ -21,7 +21,8 @@ scopes the sign-in holds, so a person can tell a read-only sign-in from a wider 
 Every answer is marked `trust: "untrusted"`. A message's title and text are data: the plugin never follows them, never
 puts them in `status`, and never uses them to choose a tool or a recipient. The provider passes every event through the
 contract's `screenEvents`, which refuses an item that holds a secret (`refused[]`, reason `secret`) or
-instruction-shaped text from someone else (reason `instruction`). A refused item is never delivered.
+instruction-shaped text from someone else (reason `instruction`). A refused item is never delivered. One page is
+bounded by the source's `maxBytes` through the contract's `fitPage`, so a provider cannot answer an oversized page.
 
 ## Redaction
 
@@ -31,9 +32,11 @@ string, a token or a credential.
 
 ## Confirmation
 
-This template has no write, so it has nothing to confirm. A write added later follows the contract: a planning read and
-a separate commit, an `actions` entry, and either an OpenCode permission ask or a host-signed action grant verified by
-the contract's `grant` module. A non-read method over RPC that has neither is refused with `PERMISSION_DENIED`.
+This template has no write, so it has nothing to confirm. A write added later follows the contract's plan flow: a
+planning read previews `output`, `reaches`, `changes`, `cost` and `trust`, then a commit receives the stored plan as
+`call.plan` and writes only what the person saw. It also gets an `actions` entry, and either an OpenCode permission ask
+or a host-signed action grant verified by the contract's `grant` module. A non-read method over RPC that has neither is
+refused with `PERMISSION_DENIED`.
 
 ## Reporting
 

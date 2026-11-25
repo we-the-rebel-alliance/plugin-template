@@ -10,6 +10,7 @@
 import { decodeBoundCursor, encodeBoundCursor } from "@we-the-rebel-alliance/plugin-contract/cursor"
 import {
   eventsListResult,
+  fitPage,
   makeEvent,
   probeResult,
   screenEvents,
@@ -147,6 +148,8 @@ export interface PageRequest {
   readonly account: string
   readonly request: EventsListRequest
   readonly now: number
+  /** The source's `maxBytes`: the page is fitted to it with the contract's `fitPage`. */
+  readonly maxBytes: number
 }
 
 /** What the plugin asks its provider for. The provider is the only layer that names the vendor. */
@@ -180,7 +183,7 @@ export function createProvider(options: { readonly plugin: string; readonly pack
 
   const inScope = (event: SourceEvent, scope: EventsListRequest["scope"]): boolean => {
     if (scope === undefined) return true
-    const channels = scope["channels"]
+    const channels = scope.channels
     if (channels === undefined) return true
     const wanted = new Set(Array.isArray(channels) ? channels : [channels])
     return event.labels.some((label) => label.startsWith("channel:") && wanted.has(label.slice("channel:".length)))
@@ -188,7 +191,7 @@ export function createProvider(options: { readonly plugin: string; readonly pack
 
   return {
     owner,
-    page({ account, request, now }) {
+    page({ account, request, now, maxBytes }) {
       const binding = { plugin: options.plugin, source: SOURCE, account, ...(request.scope === undefined ? {} : { scope: request.scope }) }
       let after: string | null | undefined
       if (request.cursor !== undefined) {
@@ -200,7 +203,7 @@ export function createProvider(options: { readonly plugin: string; readonly pack
             next: "Read again without the cursor to start a fresh window.",
           })
         }
-        const state = decoded.state["after"]
+        const state = decoded.state.after
         if (state !== null && typeof state !== "string") {
           throw new SourceError({ code: "CURSOR_INVALID", what: "the cursor holds no position this source can read", next: "Read again without the cursor to start a fresh window." })
         }
@@ -210,10 +213,12 @@ export function createProvider(options: { readonly plugin: string; readonly pack
       const remaining = events(account).filter((event) => {
         if (!inScope(event, request.scope)) return false
         if (after !== undefined) return after !== null && Date.parse(event.occurred_at) > Date.parse(after)
-        return Date.parse(event.occurred_at) >= since!
+        return since !== undefined && Date.parse(event.occurred_at) >= since
       })
-      const listed = remaining.slice(0, request.limit)
-      const more = remaining.length > request.limit
+      // One page is bounded by the call's limit and the source's maxBytes, through the contract's own fit.
+      const fit = fitPage(remaining, request.limit, maxBytes)
+      const listed = remaining.slice(0, fit)
+      const more = remaining.length > fit
       const last = listed.at(-1)
       const cursor = encodeBoundCursor(binding, { after: last?.occurred_at ?? after ?? null })
       // Provider text is data, never instructions: a secret or instruction-shaped item from someone else is refused for good.

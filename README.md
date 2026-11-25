@@ -5,8 +5,8 @@ It is the `mcp` starting point: the vendor's MCP server holds the credentials, o
 events source reads messages from a deterministic fake provider. Replace the fake provider in `src/provider/` with the
 vendor's client, and the rest of the plugin is a connector.
 
-This repository is a template. Copy it, run `scripts/new-plugin.sh <name>`, and replace the placeholders before you
-install it.
+This repository is a template. Copy it, run `npm ci`, then run `scripts/new-plugin.sh <name>`, and replace the
+placeholders before you install it.
 
 ## Install
 
@@ -42,6 +42,8 @@ is refused with `ACCOUNT_REQUIRED`.
 
 `access` is `all` (the default), `ask-changes` or `read-only`. A read runs under every level. A write asks under
 `ask-changes` and is off under `read-only`; this template has no writes yet, so the three levels behave the same today.
+A write added later follows the contract's plan flow: a planning read previews `output`, `reaches`, `changes`, `cost`
+and `trust`, then a commit receives that plan as `call.plan` and writes only what the person saw.
 
 ## Capabilities
 
@@ -91,6 +93,7 @@ None.
 | `SCHEMA_VIOLATION` | an answer does not keep the contract's shape |
 | `PERMISSION_DENIED` | the person's grant does not cover the call |
 | `PLAN_INVALID` | the plan is missing, or belongs to another method |
+| `PLAN_USED` | the plan was already used by an earlier commit |
 | `GRANT_INVALID` | the action grant did not verify, or was already spent |
 | `HOST_UNTESTED` | OpenCode is outside the plugin's tested range |
 | `OPTIONS_INVALID` | the plugin's options do not match their schema |
@@ -99,17 +102,16 @@ None.
 
 ## Working on the template
 
-- **The contract pin.** `package.json` pins
-  `github:we-the-rebel-alliance/plugin-contract#master` while the contract is unreleased. A released plugin switches
-  that pin to the release tag, `github:we-the-rebel-alliance/plugin-contract#v0.0.0`, and moves the pin with the
-  contract's release.
+- **The contract pin.** `package.json` pins the contract to
+  `github:we-the-rebel-alliance/plugin-contract#v0.0.0`. Move the pin to the contract's next release tag; never follow
+  a branch.
 - **`dist/` is generated.** `npm run build` writes it, CI builds it before `plugin-kit check`, and it is not committed.
   Never edit `dist/` by hand in a pull request.
 - **The layout.** `src/index.ts` is the one entry, `src/accounts.ts` wires the MCP servers, `src/handlers/` holds one file
-  per method, `src/provider/` is the only place the vendor's URL is named, `skills/<name>/SKILL.md` is the agent guide,
-  and `docs/` is the documentation.
+  per method, `src/provider/` is the only place the vendor's URL is named, `test/unit/`, `test/conformance/` and
+  `test/host/` hold the tests, `skills/<name>/SKILL.md` is the agent guide, and `docs/` is the documentation.
 - **Rename it.** `scripts/new-plugin.sh <name>` renames the package, the plugin id, the skill directory, the capability
-  ids and the fake hosts. It refuses a second run.
+  ids and the fake hosts, then removes itself. It refuses a second run.
 
 ## Docs
 

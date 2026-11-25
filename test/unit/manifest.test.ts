@@ -3,9 +3,9 @@ import { test } from "node:test"
 import { accountName, accountsOf } from "@we-the-rebel-alliance/plugin-contract/accounts"
 import { checkManifest, manifestHash } from "@we-the-rebel-alliance/plugin-contract/manifest"
 import { methodEntries } from "@we-the-rebel-alliance/plugin-contract/register"
-import { handlersFor } from "../src/handlers/index.ts"
-import { manifest, packageName, version } from "../src/manifest.ts"
-import { runtimeFor } from "./support/handlers.ts"
+import { handlersFor } from "../../src/handlers/index.ts"
+import { manifest, packageName, version } from "../../src/manifest.ts"
+import { runtimeFor } from "../support/handlers.ts"
 
 test("the package and the manifest share one name", () => {
   assert.equal(manifest.plugin.name, "example")

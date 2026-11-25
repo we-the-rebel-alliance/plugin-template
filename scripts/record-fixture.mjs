@@ -1,9 +1,9 @@
-// Rewrites fixtures/conformance.json from the template's fake provider.
+// Rewrites fixtures/conformance.json from the plugin's fake provider.
 //
 //   npm run fixtures
 //
-// This script is specific to the template: the fake provider is deterministic, so every recorded answer can be rebuilt.
-// A real plugin records from two real accounts with `npx plugin-kit record --account <alias>` instead, and deletes this
+// This script is specific to the fake provider: it is deterministic, so every recorded answer can be rebuilt. A real
+// plugin records from two real accounts with `npx plugin-kit record --account <alias>` instead, and deletes this
 // script. `new-plugin.sh` runs it after a rename when the dependencies are installed, because a cursor binds the plugin
 // id and therefore changes with the rename.
 import { mkdirSync, writeFileSync } from "node:fs"
@@ -13,7 +13,7 @@ import { run, runtimeFor } from "../test/support/handlers.ts"
 const runtime = runtimeFor()
 const source = manifest.sources[0]
 if (source === undefined) throw new Error("the manifest declares no source")
-const sourceName = typeof source.input?.["source"] === "string" ? source.input["source"] : source.id
+const sourceName = typeof source.input?.source === "string" ? source.input.source : source.id
 const account = "work"
 const since = "2026-11-01T00:00:00.000Z"
 

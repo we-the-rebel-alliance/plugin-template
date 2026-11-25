@@ -5,7 +5,8 @@
  * so the manifest the conformance kit hashes and the manifest the plugin registers can never drift apart.
  */
 import { readFileSync } from "node:fs"
-import { checkManifest, type Manifest } from "@we-the-rebel-alliance/plugin-contract/manifest"
+import { MAX_PAGE_BYTES } from "@we-the-rebel-alliance/plugin-contract/events"
+import { checkManifest, findSource, maxBytesOf, type Manifest } from "@we-the-rebel-alliance/plugin-contract/manifest"
 
 interface PackageFile {
   readonly name?: unknown
@@ -32,3 +33,12 @@ export const version = file.version
 
 /** The validated manifest. */
 export const manifest: Manifest = checked.value
+
+/** The events source this plugin reads. */
+export const sourceId = "example.messages"
+
+/** The most bytes one page of the source may hold, from the source's manifest entry. */
+export const maxBytes = (() => {
+  const source = findSource(manifest, sourceId)
+  return source === undefined ? MAX_PAGE_BYTES : maxBytesOf(source)
+})()

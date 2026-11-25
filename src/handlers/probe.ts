@@ -1,7 +1,7 @@
 /** `probe`: whose an account is. It reads the account, never any content. */
-import { parseProbeInput } from "@we-the-rebel-alliance/plugin-contract/events"
+import { PROBE_SCHEMA, parseProbeInput } from "@we-the-rebel-alliance/plugin-contract/events"
 import type { MethodHandler } from "@we-the-rebel-alliance/plugin-contract/register"
-import { OBJECT, refuseInput, refuseSource } from "./shared.ts"
+import { refuseInput, refuseSource } from "./shared.ts"
 import { SOURCE } from "../provider/client.ts"
 import type { HandlerRuntime } from "./index.ts"
 
@@ -14,11 +14,11 @@ export function probeHandler(runtime: HandlerRuntime): MethodHandler {
       properties: { source: { type: "string", description: "The source to probe; only messages." } },
       additionalProperties: false,
     },
-    output: OBJECT,
+    output: PROBE_SCHEMA,
     async run(input, call) {
       const parsed = parseProbeInput(input)
       if (!parsed.ok) refuseInput(parsed.problems)
-      if (parsed.value.source !== undefined && parsed.value.source !== SOURCE) refuseSource(runtime.plugin, parsed.value.source)
+      if (parsed.value.source !== undefined && parsed.value.source !== SOURCE) refuseSource(runtime.manifest.plugin.name, parsed.value.source)
       return runtime.provider.probe(call.account)
     },
   }

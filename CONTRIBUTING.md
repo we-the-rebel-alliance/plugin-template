@@ -19,20 +19,21 @@ npm run check
 
 | Step | What it proves |
 |---|---|
+| `npm run lint` | `@biomejs/biome` finds no lint problem |
 | `npm run typecheck` | the sources and tests typecheck under strict settings |
 | `npm run build` | `dist/index.js` is built from `src/index.ts` with esbuild |
-| `npm test` | the account wiring, provider, handlers, host gate, manifest and fixture tests pass |
+| `npm test` | the unit tests, the recorded fixture and the `assertHost` gate |
+| `npm run pack` | the tarball holds `package.json`, `dist/index.js`, the skill, the assets, `README.md` and `LICENSE` |
 | `plugin-kit check` | conformance T0 and T1, the doc file set, the forbidden patterns and no bundled kit |
 | `plugin-kit docs --check` | every generated doc section matches the manifest |
 
-CI runs the same steps in one job named `ci`. `dist/` is generated and is not committed, so CI builds it before
-`plugin-kit check`.
+CI runs the same steps in one job named `ci`. `dist/` is generated and is not committed, so CI builds it before it
+packs the tarball and runs `plugin-kit check`.
 
 ## The contract pin
 
-`package.json` pins the contract to `github:we-the-rebel-alliance/plugin-contract#master` while the contract is
-unreleased. A released plugin pins the release tag instead, `github:we-the-rebel-alliance/plugin-contract#v0.0.0`, and
-moves the pin with the contract's release. Never copy a contract module into this repository.
+`package.json` pins the contract to `github:we-the-rebel-alliance/plugin-contract#v0.0.0`. Move the pin to the
+contract's next release tag; never follow a branch. Never copy a contract module into this repository.
 
 The committed `package-lock.json` records the contract's repository over `git+https`, so a fresh `npm ci` needs no SSH
 key. Keep it that way; CI also rewrites an `ssh://git@github.com/` URL to HTTPS for an older lockfile.
@@ -48,10 +49,10 @@ tests, then `npx plugin-kit docs`, then `npx plugin-kit check`. Every capability
 ## Fixtures
 
 `fixtures/conformance.json` is the plugin's evidence to the conformance kit. This template records the fake provider, and
-`test/fixture.test.ts` replays every recorded answer through the handlers so the fixture cannot drift. Rebuild it with
-`npm run fixtures` after changing the fake provider; after `scripts/new-plugin.sh`, it runs for you when the
-dependencies are installed. Once a real provider replaces the fake one, delete `scripts/record-fixture.mjs` and record
-from two real accounts:
+`test/conformance/fixture.test.ts` replays every recorded answer through the handlers so the fixture cannot drift.
+Rebuild it with `npm run fixtures` after changing the fake provider; after `scripts/new-plugin.sh`, it runs for you when
+the dependencies are installed. Once a real provider replaces the fake one, delete `scripts/record-fixture.mjs` and
+record from two real accounts:
 
 ```sh
 npx plugin-kit record --account work
@@ -70,5 +71,5 @@ checks the tag, builds, and creates the GitHub release with the packed tarball, 
 ## Template
 
 This repository is also the template. `scripts/new-plugin.sh <name>` renames the package, the plugin id, the skill
-directory, the capability ids and the fake hosts, and refuses a second run. Replace the copyright holder in `LICENSE`
-and the entry in `.github/CODEOWNERS` with the plugin's own.
+directory, the capability ids and the fake hosts, removes the template-only sections and the script itself, and refuses
+a second run. Replace the copyright holder in `LICENSE` and the entry in `.github/CODEOWNERS` with the plugin's own.

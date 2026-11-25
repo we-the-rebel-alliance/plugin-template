@@ -1,9 +1,11 @@
 /** The handlers, driven through their real entry, with a fixed clock and no host. */
 import { accountsOf } from "@we-the-rebel-alliance/plugin-contract/accounts"
-import { manifest, packageName, version } from "../../src/manifest.ts"
+import type { UnguardedAgentsResult } from "@we-the-rebel-alliance/plugin-contract/access"
+import type { Bus } from "@we-the-rebel-alliance/plugin-contract/bus"
+import type { MethodCall } from "@we-the-rebel-alliance/plugin-contract/register"
+import { manifest, maxBytes, packageName, version } from "../../src/manifest.ts"
 import { handlersFor, type HandlerRuntime } from "../../src/handlers/index.ts"
 import { createProvider } from "../../src/provider/client.ts"
-import type { MethodCall } from "@we-the-rebel-alliance/plugin-contract/register"
 
 /** The fixed time every recorded answer is stamped with. */
 export const NOW = Date.parse("2026-11-25T09:00:00.000Z")
@@ -16,23 +18,23 @@ export function runtimeFor(options: Readonly<Record<string, unknown>> = OPTIONS,
   const plan = accountsOf(manifest, options)
   if (!plan.ok) throw new Error(plan.problems.join("; "))
   return {
-    plugin: manifest.plugin.name,
-    packageName,
+    manifest,
     version,
     hostVersion: "2.4.1",
-    tested: manifest.plugin.host.tested,
     accounts: plan.value.accounts,
+    maxBytes,
     provider: createProvider({ plugin: manifest.plugin.name, package: packageName }),
     clock: () => NOW,
-    agents: async () => [],
-    rules: () => [],
-    nextStep: () => null,
+    problems: [],
     ...overrides,
   }
 }
 
+/** The bus `register` gives every call; this template emits no event, so a call never reaches it. */
+const bus: Bus = { name: manifest.plugin.name, emit: async () => ({ ok: true }) }
+
 /** The call context a handler sees, as `register` builds it. */
-function callFor(account: string): MethodCall {
+function callFor(account: string, unguardedAgents: UnguardedAgentsResult): MethodCall {
   return {
     sessionID: "ses_test",
     agent: "build",
@@ -41,11 +43,21 @@ function callFor(account: string): MethodCall {
     signal: new AbortController().signal,
     progress: async () => undefined,
     account,
+    bus,
+    unguardedAgents: async () => unguardedAgents,
     door: "tool",
   }
 }
 
 /** Run one handler with an account and the input `register` would pass. */
-export async function run(runtime: HandlerRuntime, method: "status" | "probe" | "events_list" | "list_channels", input: Readonly<Record<string, unknown>>, account = "work"): Promise<unknown> {
-  return handlersFor(runtime)[method]!.run(input, callFor(account))
+export async function run(
+  runtime: HandlerRuntime,
+  method: "status" | "probe" | "events_list" | "list_channels",
+  input: Readonly<Record<string, unknown>>,
+  account = "work",
+  unguardedAgents: UnguardedAgentsResult = { ok: true, agents: [] },
+): Promise<unknown> {
+  const handler = handlersFor(runtime)[method]
+  if (handler === undefined) throw new Error(`the handler table has no ${method}`)
+  return handler.run(input, callFor(account, unguardedAgents))
 }

@@ -171,17 +171,20 @@
   "scripts": {
     "build": "node scripts/build.mjs",
     "typecheck": "tsc -p tsconfig.json",
+    "lint": "biome check .",
     "test": "node --test \"test/**/*.test.ts\"",
     "fixtures": "node scripts/record-fixture.mjs",
     "docs": "plugin-kit docs",
     "docs:check": "plugin-kit docs --check",
-    "check": "npm run typecheck && npm run build && npm run test && plugin-kit check && plugin-kit docs --check"
+    "check": "npm run lint && npm run typecheck && npm run build && npm run test && npm run pack && plugin-kit check && plugin-kit docs --check",
+    "pack": "node scripts/check-pack.mjs"
   },
   "devDependencies": {
+    "@biomejs/biome": "2.6.9",
     "@opencode/plugin": "2.4.1",
     "@opencode/sdk": "2.4.1",
     "@types/node": "24.19.2",
-    "@we-the-rebel-alliance/plugin-contract": "github:we-the-rebel-alliance/plugin-contract#master",
+    "@we-the-rebel-alliance/plugin-contract": "github:we-the-rebel-alliance/plugin-contract#v0.0.0",
     "esbuild": "0.28.2",
     "typescript": "5.9.3"
   }

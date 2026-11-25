@@ -1,6 +1,7 @@
 /** `list_channels`: the bind-time read that lists the values a person may confirm for the source's scope. */
+import { LIST_OPTIONS_SCHEMA } from "@we-the-rebel-alliance/plugin-contract/events"
 import type { MethodHandler } from "@we-the-rebel-alliance/plugin-contract/register"
-import { OBJECT, refuseSource } from "./shared.ts"
+import { refuseSource } from "./shared.ts"
 import { SOURCE } from "../provider/client.ts"
 import type { HandlerRuntime } from "./index.ts"
 
@@ -13,10 +14,10 @@ export function listChannelsHandler(runtime: HandlerRuntime): MethodHandler {
       properties: { source: { type: "string", description: "The source to list channels for; only messages." } },
       additionalProperties: false,
     },
-    output: OBJECT,
+    output: LIST_OPTIONS_SCHEMA,
     async run(input, call) {
-      const source = input["source"]
-      if (source !== undefined && (typeof source !== "string" || source !== SOURCE)) refuseSource(runtime.plugin, String(source))
+      const source = input.source
+      if (source !== undefined && (typeof source !== "string" || source !== SOURCE)) refuseSource(runtime.manifest.plugin.name, String(source))
       return runtime.provider.channels(call.account)
     },
   }

@@ -1,7 +1,7 @@
 import assert from "node:assert/strict"
 import { test } from "node:test"
-import { manifest } from "../src/manifest.ts"
-import { registerMcpAccounts, type AccountsContext } from "../src/accounts.ts"
+import { manifest } from "../../src/manifest.ts"
+import { registerMcpAccounts, type AccountsContext } from "../../src/accounts.ts"
 
 /** A context with the two transforms, capturing the MCP servers a plugin registers. */
 function context() {
