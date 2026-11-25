@@ -65,11 +65,14 @@ npx plugin-kit record --account personal
 
 Releases are tags, not npm packages. A release is prepared in one pull request,
 `chore(release): prepare vX.Y.Z`: the version in `package.json` and `package-lock.json`, the `CHANGELOG.md` section, and
-`npx plugin-kit docs` if the manifest changed. The owner pushes the tag after `master`'s CI passed; the release workflow
-checks the tag, builds, and creates the GitHub release with the packed tarball, the conformance report and `SHA256SUMS`.
+`npx plugin-kit docs` if the manifest changed. The released heading is `## X.Y.Z (YYYY-MM-DD)`, for example
+`## 0.0.0 (2026-11-25)`; the template keeps `## 0.0.0 (unreleased)` until its first release is dated. The owner pushes
+the tag after `master`'s CI passed; the release workflow checks the tag, builds, and creates the GitHub release with the
+packed tarball, the conformance report and `SHA256SUMS`.
 
 ## Template
 
 This repository is also the template. `scripts/new-plugin.sh <name>` renames the package, the plugin id, the skill
-directory, the capability ids and the fake hosts, removes the template-only sections and the script itself, and refuses
-a second run. Replace the copyright holder in `LICENSE` and the entry in `.github/CODEOWNERS` with the plugin's own.
+directory, the capability ids and the fake hosts, rewrites the repository, homepage and bugs URLs, removes the
+template-only sections and the script itself, and refuses a second run. Replace the copyright holder in `LICENSE`, and
+adjust `.github/CODEOWNERS` only if the plugin has its own maintainer teams.
