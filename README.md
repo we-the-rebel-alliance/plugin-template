@@ -1,7 +1,7 @@
 # Example
 
 A minimal, conforming OpenCode plugin on [plugin-contract](https://github.com/we-the-rebel-alliance/plugin-contract) v0.
-It is the `mcp` starting point: the vendor's MCP server holds the credentials, one server per account alias, and one
+It uses the `mcp` account mechanism: the vendor's MCP server holds the credentials, one server per account alias, and one
 events source reads messages from a deterministic fake provider. Replace the fake provider in `src/provider/` with the
 vendor's client, and the rest of the plugin is a connector.
 

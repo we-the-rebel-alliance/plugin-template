@@ -7,9 +7,9 @@ silent, they decide.
 
 ## What this plugin is
 
-A starting point for an OpenCode plugin whose vendor holds the credentials in an MCP server. It reads one account's
-messages through a deterministic fake provider in `src/provider/`, reports status and probe answers, and registers one
-MCP server per account alias (`example`, `example-work`, `example-personal`). It writes nothing. Copy it, run `npm ci`,
+A conforming OpenCode plugin whose vendor holds the credentials in an MCP server. It reads one account's messages
+through a deterministic fake provider in `src/provider/`, reports status and probe answers, and registers one MCP
+server per account alias (`example`, `example-work`, `example-personal`). It writes nothing. Copy it, run `npm ci`,
 then `scripts/new-plugin.sh <name>`, and replace the fake provider with the vendor's client.
 
 ## Names
