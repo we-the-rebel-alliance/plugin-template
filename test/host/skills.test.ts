@@ -1,5 +1,6 @@
 import assert from "node:assert/strict"
-import { readdirSync } from "node:fs"
+import { mkdtempSync, readdirSync, rmSync } from "node:fs"
+import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { test } from "node:test"
 import { fileURLToPath } from "node:url"
@@ -15,6 +16,9 @@ interface Host {
   readonly sessions: {
     create(input: Record<string, unknown>): Promise<{ readonly id: string }>
     prompt(input: Record<string, unknown>): Promise<unknown>
+  }
+  readonly plugin: {
+    list(input: Record<string, unknown>): Promise<{ readonly data: readonly { readonly id?: string }[] }>
   }
   readonly skill: {
     list(input: Record<string, unknown>): Promise<{
@@ -37,33 +41,40 @@ test("the real OpenCode 2.4.1 host registers every skills/<name>/SKILL.md after 
     .sort()
   assert.ok(ids.length > 0, "the package ships no skill")
 
-  const host = (await OpenCode.create({
-    plugins: [definition],
-    config: { directory: root },
-    app: { name: "opencode", version: "2.4.1" },
-    log: { level: "error", emit: () => undefined },
-  })) as unknown as Host
-
+  // An empty project: OpenCode discovers `<project>/skills/` itself, so using the repository root here would let
+  // the test pass without `registerSkills`. The skills must come from the plugin's transform alone.
+  const project = mkdtempSync(join(tmpdir(), "plugin-skill-project-"))
   try {
-    const session = await host.sessions.create({ location: { directory: root }, agent: "build", permissions: [] })
-    await host.sessions.prompt({ sessionID: session.id, text: "activate the skill registration", delivery: "queue" }).catch(() => undefined)
-    await waitForActivation({
-      isActive: async () => {
-        const answer = await host.skill.list({ location: { directory: root } }).catch(() => undefined)
-        return answer !== undefined && ids.every((id) => answer.data.some((skill) => skill.id === id))
-      },
-      timeoutMs: 20_000,
-    })
-    const answer = await host.skill.list({ location: { directory: root } })
-    for (const id of ids) {
-      const skill = answer.data.find((candidate) => candidate.id === id)
-      assert.ok(skill !== undefined, `the host did not register the ${id} skill`)
-      assert.equal(skill.name, id)
-      assert.ok((skill.description ?? "").trim().length > 0, `the ${id} skill has no description`)
-      assert.equal(skill.path, join(root, "skills", id, "SKILL.md"))
-      assert.ok(skill.content.trim().length > 0, `the ${id} skill has no body`)
+    const host = (await OpenCode.create({
+      plugins: [definition],
+      config: { directory: project },
+      app: { name: "opencode", version: "2.4.1" },
+      log: { level: "error", emit: () => undefined },
+    })) as unknown as Host
+
+    try {
+      const session = await host.sessions.create({ location: { directory: project }, agent: "build", permissions: [] })
+      await host.sessions.prompt({ sessionID: session.id, text: "activate the skill registration", delivery: "queue" }).catch(() => undefined)
+      await waitForActivation({
+        isActive: async () => {
+          const list = await host.plugin.list({ location: { directory: project } }).catch(() => undefined)
+          return list?.data.some((entry) => entry.id === definition.id) ?? false
+        },
+        timeoutMs: 20_000,
+      })
+      const answer = await host.skill.list({ location: { directory: project } })
+      for (const id of ids) {
+        const skill = answer.data.find((candidate) => candidate.id === id)
+        assert.ok(skill !== undefined, `the host did not register the ${id} skill`)
+        assert.equal(skill.name, id)
+        assert.ok((skill.description ?? "").trim().length > 0, `the ${id} skill has no description`)
+        assert.equal(skill.path, join(root, "skills", id, "SKILL.md"))
+        assert.ok(skill.content.trim().length > 0, `the ${id} skill has no body`)
+      }
+    } finally {
+      await host.close()
     }
   } finally {
-    await host.close()
+    rmSync(project, { recursive: true, force: true })
   }
 })

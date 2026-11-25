@@ -57,10 +57,18 @@ jobs:
         with:
           persist-credentials: false
       - name: Install OpenCode 2.4.1 in an isolated HOME
+        env:
+          # Keep OpenCode's binary, config, cache, data and state out of the runner's home.
+          HOME: ${{ runner.temp }}/plugin-home
+          XDG_CONFIG_HOME: ${{ runner.temp }}/plugin-home/.config
+          XDG_CACHE_HOME: ${{ runner.temp }}/plugin-home/.cache
+          XDG_DATA_HOME: ${{ runner.temp }}/plugin-home/.local/share
+          XDG_STATE_HOME: ${{ runner.temp }}/plugin-home/.local/state
+          XDG_RUNTIME_DIR: ${{ runner.temp }}/plugin-home/.run
         run: |
           set -euo pipefail
-          export HOME="$RUNNER_TEMP/plugin-home"
-          mkdir -p "$HOME"
+          mkdir -p "$HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
           curl -fsSL https://opencode.ai/v2/install | bash -s -- --version 2.4.1 --no-modify-path
           "$HOME/.opencode/bin/opencode" --version
       - name: Install the pushed commit as an OpenCode plugin
@@ -68,12 +76,22 @@ jobs:
           # The pull request's merge commit is not fetchable from a plain clone; install the pushed head instead. A
           # fork's head lives in the fork, this repository's head here.
           REPO: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
-          GITHUB_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          HOME: ${{ runner.temp }}/plugin-home
+          XDG_CONFIG_HOME: ${{ runner.temp }}/plugin-home/.config
+          XDG_CACHE_HOME: ${{ runner.temp }}/plugin-home/.cache
+          XDG_DATA_HOME: ${{ runner.temp }}/plugin-home/.local/share
+          XDG_STATE_HOME: ${{ runner.temp }}/plugin-home/.local/state
+          XDG_RUNTIME_DIR: ${{ runner.temp }}/plugin-home/.run
         run: |
           set -euo pipefail
-          export HOME="$RUNNER_TEMP/plugin-home"
           export PATH="$HOME/.opencode/bin:$PATH"
-          opencode plugin add "github:${REPO}#${GITHUB_SHA}"
-          entry="$(find "$HOME/.cache/opencode/npm" -path '*/node_modules/*/dist/index.js' -print -quit)"
-          test -n "$entry" || { echo "the installed package carries no dist/index.js" >&2; exit 1; }
-          echo "the installed package carries $entry"
+          opencode plugin add "github:${REPO}#${HEAD_SHA}"
+          package="$(node -p "require('./package.json').name")"
+          case "$package" in
+            @we-the-rebel-alliance/*-plugin) ;;
+            *) echo "package.json names $package, not an @we-the-rebel-alliance/<name>-plugin" >&2; exit 1 ;;
+          esac
+          entry="$(find "$HOME/.cache/opencode/npm" -path "*/node_modules/$package/dist/index.js" -print -quit)"
+          test -n "$entry" || { echo "the installed package $package carries no dist/index.js" >&2; exit 1; }
+          echo "the installed package $package carries $entry"
