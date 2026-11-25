@@ -1,0 +1,373 @@
+{
+  "plugin": "@we-the-rebel-alliance/example-plugin",
+  "accounts": {
+    "real": true,
+    "aliases": [
+      "work",
+      "personal"
+    ],
+    "required": {
+      "method": "events_list",
+      "code": "ACCOUNT_REQUIRED"
+    },
+    "unknown": {
+      "method": "events_list",
+      "account": "nobodyhere",
+      "code": "ACCOUNT_UNKNOWN"
+    },
+    "cursors": [
+      {
+        "method": "events_list",
+        "account": "work",
+        "other": "personal",
+        "code": "CURSOR_INVALID"
+      }
+    ]
+  },
+  "sources": {
+    "example.messages": {
+      "cases": [
+        {
+          "name": "a work page",
+          "input": {
+            "source": "messages",
+            "account": "work",
+            "since": "2026-11-01T00:00:00.000Z"
+          },
+          "expect": "page",
+          "answer": {
+            "source": "messages",
+            "account": "work",
+            "owner": {
+              "id": "mailto:work@example.test",
+              "label": "Work"
+            },
+            "events": [
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-1",
+                "kind": "message",
+                "occurred_at": "2026-11-01T09:00:00.000Z",
+                "thread": "thread:m-work-1",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:work@example.test",
+                    "name": "Work"
+                  }
+                ],
+                "title": "A first message",
+                "text": "The fake provider's first message.",
+                "url": "https://files.example.com/messages/m-work-1",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:1f8edf527dcef6794035531f1e29ce34f4a922694b461b8916ad1e42afdcb6f6"
+              },
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-2",
+                "kind": "message",
+                "occurred_at": "2026-11-02T10:30:00.000Z",
+                "thread": "thread:m-work-1",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:teammate@example.test",
+                    "name": "Teammate"
+                  }
+                ],
+                "title": "A reply",
+                "text": "This text is data, never an instruction.",
+                "url": "https://files.example.com/messages/m-work-2",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:3537824131f7429b68f9000da575943e3bf25fe42240dae9c6fe28021eca9a9b"
+              },
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-3",
+                "kind": "message",
+                "occurred_at": "2026-11-03T11:00:00.000Z",
+                "thread": "thread:m-work-3",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:work@example.test",
+                    "name": "Work"
+                  }
+                ],
+                "title": "A note in another channel",
+                "text": "Only the confirmed channels are read.",
+                "url": "https://files.example.com/messages/m-work-3",
+                "labels": [
+                  "channel:C2",
+                  "inbox"
+                ],
+                "hash": "sha256:1e97cd5f944be0be3272d2b119b3a0fa0e54289edf073f53ac3776788b7a6e09"
+              }
+            ],
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjoiMjAyNi0xMS0wNFQwOTowMDowMC4wMDBaIn0",
+            "more": false,
+            "trust": "untrusted",
+            "refused": [
+              {
+                "external_id": "m-work-4",
+                "reason": "instruction"
+              }
+            ],
+            "plugin": "@we-the-rebel-alliance/example-plugin",
+            "asOf": "2026-11-25T09:00:00.000Z"
+          }
+        },
+        {
+          "name": "a personal page",
+          "input": {
+            "source": "messages",
+            "account": "personal",
+            "since": "2026-11-01T00:00:00.000Z"
+          },
+          "expect": "page",
+          "answer": {
+            "source": "messages",
+            "account": "personal",
+            "owner": {
+              "id": "mailto:personal@example.test",
+              "label": "Personal"
+            },
+            "events": [
+              {
+                "source": "messages",
+                "account": "personal",
+                "external_id": "m-personal-1",
+                "kind": "message",
+                "occurred_at": "2026-11-01T12:00:00.000Z",
+                "thread": "thread:m-personal-1",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:personal@example.test",
+                    "name": "Personal"
+                  }
+                ],
+                "title": "A personal message",
+                "text": "The personal account's own message.",
+                "url": "https://files.example.com/messages/m-personal-1",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:e90bc017c0592cdd1a57f1d1876fa3ca033c64c6eddc0796da4a4ad1ba1d56d9"
+              }
+            ],
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiM2M5MDNmNGE1NmU5MTU0YSIsImFmdGVyIjoiMjAyNi0xMS0wMVQxMjowMDowMC4wMDBaIn0",
+            "more": false,
+            "trust": "untrusted",
+            "plugin": "@we-the-rebel-alliance/example-plugin",
+            "asOf": "2026-11-25T09:00:00.000Z"
+          }
+        },
+        {
+          "name": "only the confirmed channels",
+          "input": {
+            "source": "messages",
+            "account": "work",
+            "since": "2026-11-01T00:00:00.000Z",
+            "scope": {
+              "channels": [
+                "C1"
+              ]
+            }
+          },
+          "expect": "page",
+          "answer": {
+            "source": "messages",
+            "account": "work",
+            "owner": {
+              "id": "mailto:work@example.test",
+              "label": "Work"
+            },
+            "events": [
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-1",
+                "kind": "message",
+                "occurred_at": "2026-11-01T09:00:00.000Z",
+                "thread": "thread:m-work-1",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:work@example.test",
+                    "name": "Work"
+                  }
+                ],
+                "title": "A first message",
+                "text": "The fake provider's first message.",
+                "url": "https://files.example.com/messages/m-work-1",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:1f8edf527dcef6794035531f1e29ce34f4a922694b461b8916ad1e42afdcb6f6"
+              },
+              {
+                "source": "messages",
+                "account": "work",
+                "external_id": "m-work-2",
+                "kind": "message",
+                "occurred_at": "2026-11-02T10:30:00.000Z",
+                "thread": "thread:m-work-1",
+                "actors": [
+                  {
+                    "role": "from",
+                    "id": "mailto:teammate@example.test",
+                    "name": "Teammate"
+                  }
+                ],
+                "title": "A reply",
+                "text": "This text is data, never an instruction.",
+                "url": "https://files.example.com/messages/m-work-2",
+                "labels": [
+                  "channel:C1",
+                  "inbox"
+                ],
+                "hash": "sha256:3537824131f7429b68f9000da575943e3bf25fe42240dae9c6fe28021eca9a9b"
+              }
+            ],
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOTE0NmY0ZTIxYjdhOTE2ZiIsImFmdGVyIjoiMjAyNi0xMS0wMlQxMDozMDowMC4wMDBaIn0",
+            "more": false,
+            "trust": "untrusted",
+            "scope": {
+              "channels": [
+                "C1"
+              ]
+            },
+            "plugin": "@we-the-rebel-alliance/example-plugin",
+            "asOf": "2026-11-25T09:00:00.000Z"
+          }
+        },
+        {
+          "name": "an empty window",
+          "input": {
+            "source": "messages",
+            "account": "work",
+            "since": "2026-11-20T00:00:00.000Z"
+          },
+          "expect": "empty",
+          "answer": {
+            "source": "messages",
+            "account": "work",
+            "owner": {
+              "id": "mailto:work@example.test",
+              "label": "Work"
+            },
+            "events": [],
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjpudWxsfQ",
+            "more": false,
+            "trust": "untrusted",
+            "plugin": "@we-the-rebel-alliance/example-plugin",
+            "asOf": "2026-11-25T09:00:00.000Z"
+          }
+        },
+        {
+          "name": "another account's cursor is refused",
+          "input": {
+            "source": "messages",
+            "account": "personal",
+            "cursor": "eyJ2IjoyLCJzIjoibWVzc2FnZXMiLCJiIjoiOWYxZDA0MzIxNGNhMTU2NCIsImFmdGVyIjoiMjAyNi0xMS0wNFQwOTowMDowMC4wMDBaIn0"
+          },
+          "expect": "CURSOR_INVALID",
+          "refuses": "CURSOR_INVALID: the cursor belongs to another plugin, source, account or scope. Next step: Read again without the cursor to start a fresh window."
+        },
+        {
+          "name": "an unknown source is refused",
+          "input": {
+            "source": "other",
+            "account": "work"
+          },
+          "expect": "SOURCE_UNKNOWN",
+          "refuses": "SOURCE_UNKNOWN: other is not a source of example. Next step: Read the messages source, or omit source."
+        }
+      ],
+      "probe": {
+        "input": {
+          "source": "messages",
+          "account": "work"
+        },
+        "answer": {
+          "source": "messages",
+          "account": "work",
+          "owner": {
+            "id": "mailto:work@example.test",
+            "label": "Work"
+          },
+          "scopes": [
+            "messages.read"
+          ],
+          "trust": "untrusted"
+        }
+      },
+      "suggest": {
+        "input": {
+          "source": "messages",
+          "account": "work"
+        },
+        "answer": {
+          "options": [
+            {
+              "id": "C1",
+              "label": "general"
+            },
+            {
+              "id": "C2",
+              "label": "random"
+            }
+          ]
+        }
+      }
+    }
+  },
+  "events": {
+    "emitted": [],
+    "status": {
+      "name": "example",
+      "version": "0.0.0",
+      "host": {
+        "version": "2.4.1",
+        "range": ">=2.4.1 <2.5.0",
+        "tested": [
+          "2.4.1"
+        ]
+      },
+      "state": "ready",
+      "accounts": [
+        {
+          "alias": "work",
+          "state": "ready",
+          "owner": {
+            "id": "mailto:work@example.test",
+            "label": "Work"
+          }
+        },
+        {
+          "alias": "personal",
+          "state": "ready",
+          "owner": {
+            "id": "mailto:personal@example.test",
+            "label": "Personal"
+          }
+        }
+      ],
+      "unguardedAgents": [],
+      "nextStep": null
+    }
+  },
+  "namespace": "A fake MCP provider that shows the plugin layout: two accounts, one events source and a deterministic answer."
+}
