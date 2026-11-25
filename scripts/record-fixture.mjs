@@ -4,8 +4,7 @@
 //
 // This script is specific to the fake provider: it is deterministic, so every recorded answer can be rebuilt. A real
 // plugin records from two real accounts with `npx plugin-kit record --account <alias>` instead, and deletes this
-// script. `new-plugin.sh` runs it after a rename when the dependencies are installed, because a cursor binds the plugin
-// id and therefore changes with the rename.
+// script. A rename runs it once, because a cursor binds the plugin id and therefore changes with the name.
 import { mkdirSync, writeFileSync } from "node:fs"
 import { manifest, packageName } from "../src/manifest.ts"
 import { run, runtimeFor } from "../test/support/handlers.ts"
