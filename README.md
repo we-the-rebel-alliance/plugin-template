@@ -26,8 +26,8 @@ The vendor's MCP server holds the credentials, so OpenCode gets one MCP server p
 | `work` | `example-work` |
 | `personal` | `example-personal` |
 
-Sign in to each server through OpenCode's MCP sign-in. Each alias has its own OAuth session. The template registers a
-fake URL under `src/provider/`; a real plugin registers the vendor's server URL there instead.
+Sign in to each server through OpenCode's MCP sign-in. Each alias has its own OAuth session. The template's
+`src/provider/client.ts` names a fake MCP URL; a real plugin names the vendor's server URL there instead.
 
 Configure the aliases in `opencode.json`:
 
