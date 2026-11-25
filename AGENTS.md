@@ -43,16 +43,17 @@ other lifecycle script. Run `npm run bundle` after changing `src/` and commit `d
 ## Layout
 
 ```
-src/index.ts              Plugin.define({ id, setup }), the host gate, the account wiring and one register call
+src/index.ts              Plugin.define({ id, setup }), the host gate, the skills, the accounts and the registrations
 src/accounts.ts           the mcp mechanism: one server per alias, through the contract's accounts module
 src/handlers/             one file per method: status, probe, events_list, list_channels
 src/provider/             the fake MCP provider; the only place a vendor URL is named
 src/manifest.ts           reads package.json capabilities and checks it with the contract
+src/skills.ts             reads skills/<name>/SKILL.md and registers each with ctx.skill.transform
 test/unit/                accounts, provider, handlers and manifest tests
 test/conformance/         the recorded fixture replayed through the handlers
-test/host/                the contract's assertHost gate on a supported and an unsupported host
+test/host/                the contract's assertHost gate, and the real 2.4.1 host registering every skill
 test/support/             the runtime and call a test drives a handler with
-skills/example/SKILL.md   the agent guide
+skills/example/SKILL.md   the agent guide; its frontmatter name is the directory, and its description and body are non-empty
 docs/                     capabilities, configuration, accounts, automations, architecture, security
 fixtures/conformance.json the recorded conformance answers the kit replays
 scripts/build.mjs         bundles dist/index.js with esbuild

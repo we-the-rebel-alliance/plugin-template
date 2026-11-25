@@ -12676,11 +12676,86 @@ var maxBytes = (() => {
   return source2 === void 0 ? MAX_PAGE_BYTES : maxBytesOf(source2);
 })();
 
+// src/skills.ts
+import { readdirSync, readFileSync as readFileSync2 } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+import { Skill } from "@opencode/plugin";
+var SKILLS = fileURLToPath(new URL("../skills/", import.meta.url));
+function invalid(file3, what) {
+  return new Error(`SCHEMA_VIOLATION: ${file3} ${what}. Next step: fix the skill file, then reload the plugin.`);
+}
+function frontmatter(text2, file3) {
+  const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text2);
+  if (match === null) throw invalid(file3, "has no frontmatter");
+  const lines = match[1].split(/\r?\n/);
+  const fields = /* @__PURE__ */ new Map();
+  for (let index = 0; index < lines.length; index += 1) {
+    const line = lines[index];
+    if (line.trim() === "" || line.trimStart().startsWith("#") || /^\s/.test(line)) continue;
+    const field = /^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$/.exec(line);
+    if (field === null) continue;
+    let value = field[2].trim();
+    if (value === ">" || value === "|" || value === ">-" || value === "|-") {
+      const folded = value.startsWith(">");
+      const block = [];
+      while (index + 1 < lines.length && (/^\s/.test(lines[index + 1]) || lines[index + 1].trim() === "")) {
+        index += 1;
+        block.push(lines[index].trim());
+      }
+      value = folded ? block.join(" ").trim() : block.join("\n").trim();
+    } else if (value.length >= 2 && (value.startsWith('"') && value.endsWith('"') || value.startsWith("'") && value.endsWith("'"))) {
+      value = value.slice(1, -1);
+    }
+    fields.set(field[1], value);
+  }
+  return { name: fields.get("name"), description: fields.get("description"), content: text2.slice(match[0].length).trim() };
+}
+function readSkills(directory = SKILLS) {
+  let entries;
+  try {
+    entries = readdirSync(directory, { withFileTypes: true });
+  } catch {
+    throw invalid("skills/", "is missing");
+  }
+  const names = entries.filter((entry) => entry.isDirectory()).map((entry) => entry.name).sort();
+  if (names.length === 0) throw invalid("skills/", "holds no <name>/SKILL.md");
+  return names.map((name) => {
+    const file3 = `skills/${name}/SKILL.md`;
+    let text2;
+    try {
+      text2 = readFileSync2(join(directory, name, "SKILL.md"), "utf8");
+    } catch {
+      throw invalid(file3, "is missing");
+    }
+    const parsed = frontmatter(text2, file3);
+    if (parsed.name === void 0 || parsed.name === "") throw invalid(file3, "has no frontmatter name");
+    if (parsed.name !== name) throw invalid(file3, `names "${parsed.name}", not its directory "${name}"`);
+    if (parsed.description === void 0 || parsed.description === "") throw invalid(file3, "has no frontmatter description");
+    if (parsed.content === "") throw invalid(file3, "has no content below its frontmatter");
+    return { id: name, name: parsed.name, description: parsed.description, path: join(directory, name, "SKILL.md"), content: parsed.content };
+  });
+}
+async function registerSkills(context, skills = readSkills()) {
+  return context.skill.transform((editor) => {
+    for (const skill of skills) {
+      editor.add({
+        id: Skill.ID.make(skill.id),
+        name: Skill.Name.make(skill.name),
+        description: skill.description,
+        path: skill.path,
+        content: skill.content
+      });
+    }
+  });
+}
+
 // src/index.ts
 var src_default = Plugin.define({
   id: manifest.plugin.name,
   async setup(context) {
     assertHost(context, manifest);
+    const skills = readSkills();
     const options = context.options ?? {};
     const plan = accountsOf(manifest, options);
     if (!plan.ok) throw new Error(`OPTIONS_INVALID: ${plan.problems.join("; ")}. Next step: fix the plugin's accounts option.`);
@@ -12696,7 +12771,11 @@ var src_default = Plugin.define({
       problems: accountRegistration.problems
     });
     const registration = await register(context, manifest, handlers);
-    return () => registration.dispose();
+    const skillRegistration = await registerSkills(context, skills);
+    return async () => {
+      await skillRegistration.dispose();
+      await registration.dispose();
+    };
   }
 });
 export {

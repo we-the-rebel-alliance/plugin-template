@@ -108,9 +108,10 @@ None.
 - **`dist/` is committed.** `npm run bundle` writes it and a tag installs it with no build; npm refuses to prepare a git
   dependency that declares a `build` or other lifecycle script. Run `npm run bundle` after changing `src/`, commit
   `dist/index.js` with the change, and never edit it by hand.
-- **The layout.** `src/index.ts` is the one entry, `src/accounts.ts` wires the MCP servers, `src/handlers/` holds one file
-  per method, `src/provider/` is the only place the vendor's URL is named, `test/unit/`, `test/conformance/` and
-  `test/host/` hold the tests, `skills/<name>/SKILL.md` is the agent guide, and `docs/` is the documentation.
+- **The layout.** `src/index.ts` is the one entry, `src/skills.ts` registers the skills, `src/accounts.ts` wires the MCP
+  servers, `src/handlers/` holds one file per method, `src/provider/` is the only place the vendor's URL is named,
+  `test/unit/`, `test/conformance/` and `test/host/` hold the tests, `skills/<name>/SKILL.md` is the agent guide, and
+  `docs/` is the documentation.
 - **Rename it.** `scripts/new-plugin.sh <name>` renames the package, the plugin id, the skill directory, the capability
   ids and the fake hosts, then removes itself. It refuses a second run.
 

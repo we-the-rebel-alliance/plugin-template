@@ -4,9 +4,10 @@
 
 | Layer | Files | Does |
 |---|---|---|
-| Entry | `src/index.ts` | `Plugin.define({ id, setup })`, `assertHost`, the account wiring and one `register` call |
+| Entry | `src/index.ts` | `Plugin.define({ id, setup })`, `assertHost`, the skills, the account wiring and one `register` call |
 | Accounts | `src/accounts.ts` | one vendor MCP server per alias, through the contract's `accounts` module |
 | Manifest | `src/manifest.ts` | reads `package.json` `capabilities`, checks it with the contract's validator and reads the source's `maxBytes` |
+| Skills | `src/skills.ts` | reads every `skills/<name>/SKILL.md`, checks its frontmatter and registers it with `ctx.skill.transform` |
 | Handlers | `src/handlers/` | one handler per method: the input, the answer schema, the description and the work |
 | Provider | `src/provider/client.ts` | the fake MCP vendor: owners, channels, messages, pages, cursors and probes |
 
@@ -23,7 +24,9 @@ inserted into every agent. This repository never calls `ctx.tool`, `ctx.rpc` or 
    `example-<alias>`.
 4. `register` checks the handler table against `capabilities.methods`, resolves the accounts from the options,
    generates the access rules into every agent, and registers the tools and the single RPC id.
-5. A call resolves the account, validates the input against the handler's schema, asserts the method's operations,
+5. `src/skills.ts` registers each `skills/<name>/SKILL.md` through `ctx.skill.transform`, because OpenCode does not
+   discover a plugin's `skills/` directory on its own.
+6. A call resolves the account, validates the input against the handler's schema, asserts the method's operations,
    runs the handler against the provider, checks the answer and maps a failure to the contract's error table.
 
 ## The provider
@@ -47,6 +50,7 @@ A real plugin replaces this file with a client for the vendor's MCP server. It k
 | `Plugin.define` | `src/index.ts` |
 | `ctx.app.version`, `ctx.options` | `assertHost` in `src/index.ts` |
 | `ctx.mcp.transform` | `src/accounts.ts` |
+| `ctx.skill.transform` | `src/skills.ts` |
 | `ctx.agent.transform` | `register`'s access rules |
 | `ctx.agent.list` | `register`, and `call.unguardedAgents()` for status |
 | `ctx.tool.transform`, `ctx.rpc.register`, `ctx.permission.assert` | `register` only |
