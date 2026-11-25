@@ -1,0 +1,191 @@
+{
+  "name": "@we-the-rebel-alliance/example-plugin",
+  "version": "0.0.0",
+  "description": "A minimal, conforming OpenCode plugin on plugin-contract v0: an MCP account mechanism, a fake provider, an events source and generated docs.",
+  "license": "MIT",
+  "type": "module",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/we-the-rebel-alliance/example-plugin.git"
+  },
+  "engines": {
+    "node": ">=24"
+  },
+  "exports": {
+    "./server": "./dist/index.js"
+  },
+  "files": [
+    "dist",
+    "skills",
+    "assets",
+    "README.md",
+    "LICENSE"
+  ],
+  "capabilities": {
+    "version": 1,
+    "plugin": {
+      "name": "example",
+      "title": "Example",
+      "summary": "A fake MCP provider that shows the plugin layout: two accounts, one events source and a deterministic answer.",
+      "vendor": {
+        "id": "example",
+        "name": "Example",
+        "domain": "example.test"
+      },
+      "icons": [
+        {
+          "src": "assets/icon.svg",
+          "type": "image/svg+xml"
+        },
+        {
+          "src": "assets/icon-128.png",
+          "type": "image/png"
+        },
+        {
+          "src": "assets/icon-256.png",
+          "type": "image/png"
+        }
+      ],
+      "host": {
+        "opencode": ">=2.4.1 <2.5.0",
+        "tested": [
+          "2.4.1"
+        ]
+      }
+    },
+    "accounts": {
+      "via": "mcp",
+      "profile": {
+        "$ref": "#/options/properties/accounts/additionalProperties"
+      },
+      "owner": "mailto"
+    },
+    "options": {
+      "type": "object",
+      "properties": {
+        "access": {
+          "type": "string",
+          "enum": [
+            "all",
+            "ask-changes",
+            "read-only"
+          ],
+          "default": "all",
+          "description": "How much the plugin's methods may do."
+        },
+        "accounts": {
+          "type": "object",
+          "description": "One profile per account alias.",
+          "additionalProperties": {
+            "type": "object",
+            "properties": {
+              "region": {
+                "type": "string",
+                "description": "The provider region, such as eu."
+              }
+            },
+            "additionalProperties": false
+          }
+        },
+        "allowUntestedHost": {
+          "type": "boolean",
+          "default": false,
+          "description": "Start outside the tested OpenCode range."
+        }
+      },
+      "additionalProperties": false
+    },
+    "methods": {
+      "status": {
+        "class": "read",
+        "accounts": "none"
+      },
+      "probe": {
+        "class": "read",
+        "accounts": "optional",
+        "operations": [
+          "example.users.get"
+        ]
+      },
+      "events_list": {
+        "class": "read",
+        "accounts": "optional",
+        "operations": [
+          "example.messages.list",
+          "example.users.get"
+        ]
+      },
+      "list_channels": {
+        "class": "read",
+        "accounts": "optional",
+        "operations": [
+          "example.channels.list"
+        ]
+      }
+    },
+    "sources": [
+      {
+        "id": "example.messages",
+        "kind": "events",
+        "reads": "message",
+        "method": "events_list",
+        "input": {
+          "source": "messages"
+        },
+        "service": {
+          "id": "example.messages",
+          "label": "Messages"
+        },
+        "operations": [
+          "example.messages.list",
+          "example.users.get"
+        ],
+        "scope": {
+          "keys": [
+            "channels"
+          ],
+          "describe": "Channels to read.",
+          "suggest": {
+            "method": "list_channels",
+            "operations": [
+              "example.channels.list"
+            ]
+          }
+        },
+        "cadence": {
+          "suggestMinutes": 1
+        },
+        "private": true,
+        "cost": {
+          "class": "free"
+        },
+        "maxBytes": 65536,
+        "urlHosts": [
+          "files.example.com"
+        ]
+      }
+    ],
+    "actions": [],
+    "events": {}
+  },
+  "scripts": {
+    "build": "node scripts/build.mjs",
+    "typecheck": "tsc -p tsconfig.json",
+    "lint": "biome check .",
+    "test": "node --test \"test/**/*.test.ts\"",
+    "fixtures": "node scripts/record-fixture.mjs",
+    "docs": "plugin-kit docs",
+    "docs:check": "plugin-kit docs --check",
+    "check": "npm run lint && npm run typecheck && npm run build && npm run test && npm run pack && plugin-kit check && plugin-kit docs --check",
+    "pack": "node scripts/check-pack.mjs"
+  },
+  "devDependencies": {
+    "@biomejs/biome": "2.6.9",
+    "@opencode/plugin": "2.4.1",
+    "@opencode/sdk": "2.4.1",
+    "@types/node": "24.19.2",
+    "@we-the-rebel-alliance/plugin-contract": "github:we-the-rebel-alliance/plugin-contract#v0.0.0",
+    "esbuild": "0.28.2",
+    "typescript": "5.9.3"
+  }
+}
