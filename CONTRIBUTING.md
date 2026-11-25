@@ -65,8 +65,9 @@ npx plugin-kit record --account personal
 
 Releases are tags, not npm packages. A release is prepared in one pull request,
 `chore(release): prepare vX.Y.Z`: the version in `package.json` and `package-lock.json`, the `CHANGELOG.md` section, and
-`npx plugin-kit docs` if the manifest changed. The released heading is `## X.Y.Z (YYYY-MM-DD)`, for example
-`## 0.0.0 (2026-11-25)`; the template keeps `## 0.0.0 (unreleased)` until its first release is dated. The owner pushes
+`npx plugin-kit docs` if the manifest changed. The released heading is `## X.Y.Z (YYYY-MM-DD)`; the template's first
+release heading becomes `## 0.0.0 (YYYY-MM-DD)` with the real date, for example `## 0.0.0 (2026-11-25)`. The template
+keeps `## 0.0.0 (unreleased)` until its first release is dated. The owner pushes
 the tag after `master`'s CI passed; the release workflow checks the tag, builds, and creates the GitHub release with the
 packed tarball, the conformance report and `SHA256SUMS`.
 
