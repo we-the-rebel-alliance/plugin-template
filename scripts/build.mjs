@@ -1,9 +1,10 @@
 // Builds dist/index.js: the one server entry package.json exports, as one self-contained ES module.
 //
-//   npm run build
+//   npm run bundle
 //
 // @opencode/* stays external, because OpenCode provides it at run time. The contract modules are bundled, so a tag
-// installs and runs with no build and no runtime dependency. dist/ is generated, never edited by hand.
+// installs and runs with no build and no runtime dependency. dist/ is committed, because a tag must install with no
+// build; run `npm run bundle` after a source change, and never edit dist/ by hand.
 import { readFileSync, rmSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"

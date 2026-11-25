@@ -105,11 +105,13 @@ None.
 - **The contract pin.** `package.json` pins the contract to
   `github:we-the-rebel-alliance/plugin-contract#v0.0.0`. Move the pin to the contract's next release tag; never follow
   a branch.
-- **`dist/` is generated.** `npm run build` writes it, CI builds it before `plugin-kit check`, and it is not committed.
-  Never edit `dist/` by hand in a pull request.
-- **The layout.** `src/index.ts` is the one entry, `src/accounts.ts` wires the MCP servers, `src/handlers/` holds one file
-  per method, `src/provider/` is the only place the vendor's URL is named, `test/unit/`, `test/conformance/` and
-  `test/host/` hold the tests, `skills/<name>/SKILL.md` is the agent guide, and `docs/` is the documentation.
+- **`dist/` is committed.** `npm run bundle` writes it and a tag installs it with no build; npm refuses to prepare a git
+  dependency that declares a `build` or other lifecycle script. Run `npm run bundle` after changing `src/`, commit
+  `dist/index.js` with the change, and never edit it by hand.
+- **The layout.** `src/index.ts` is the one entry, `src/skills.ts` registers the skills, `src/accounts.ts` wires the MCP
+  servers, `src/handlers/` holds one file per method, `src/provider/` is the only place the vendor's URL is named,
+  `test/unit/`, `test/conformance/` and `test/host/` hold the tests, `skills/<name>/SKILL.md` is the agent guide, and
+  `docs/` is the documentation.
 - **Rename it.** `scripts/new-plugin.sh <name>` renames the package, the plugin id, the skill directory, the capability
   ids and the fake hosts, then removes itself. It refuses a second run.
 

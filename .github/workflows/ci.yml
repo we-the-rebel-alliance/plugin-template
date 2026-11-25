@@ -1,7 +1,8 @@
 name: CI
 
-# One job, named ci: the org ruleset requires a check with that name. It runs the whole gate, so the required check
-# covers lint, typecheck, build, tests, the pack check, conformance, docs drift and the forbidden scan.
+# Two jobs. `ci` is the required check: it runs the whole gate, so it covers lint, typecheck, the committed bundle,
+# tests, the pack check, conformance, docs drift and the forbidden scan. `install` proves the pushed commit installs
+# as a git dependency with OpenCode's own installer, in an isolated HOME.
 #
 # It runs locally too: npm ci --ignore-scripts && npm run check
 #
@@ -40,8 +41,57 @@ jobs:
       - run: npm ci --ignore-scripts
       - run: npm run lint
       - run: npm run typecheck
-      - run: npm run build
+      - name: The committed bundle is the one the sources produce
+        run: npm run bundle && git diff --exit-code dist/
       - run: npm test
       - run: npm run pack
       - run: npx plugin-kit check
       - run: npx plugin-kit docs --check
+
+  install:
+    name: install
+    runs-on: ubuntu-24.04
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+      - name: Install OpenCode 2.4.1 in an isolated HOME
+        env:
+          # Keep OpenCode's binary, config, cache, data and state out of the runner's home.
+          HOME: ${{ runner.temp }}/plugin-home
+          XDG_CONFIG_HOME: ${{ runner.temp }}/plugin-home/.config
+          XDG_CACHE_HOME: ${{ runner.temp }}/plugin-home/.cache
+          XDG_DATA_HOME: ${{ runner.temp }}/plugin-home/.local/share
+          XDG_STATE_HOME: ${{ runner.temp }}/plugin-home/.local/state
+          XDG_RUNTIME_DIR: ${{ runner.temp }}/plugin-home/.run
+        run: |
+          set -euo pipefail
+          mkdir -p "$HOME" "$XDG_CONFIG_HOME" "$XDG_CACHE_HOME" "$XDG_DATA_HOME" "$XDG_STATE_HOME" "$XDG_RUNTIME_DIR"
+          chmod 700 "$XDG_RUNTIME_DIR"
+          curl -fsSL https://opencode.ai/v2/install | bash -s -- --version 2.4.1 --no-modify-path
+          "$HOME/.opencode/bin/opencode" --version
+      - name: Install the pushed commit as an OpenCode plugin
+        env:
+          # The pull request's merge commit is not fetchable from a plain clone; install the pushed head instead. A
+          # fork's head lives in the fork, this repository's head here.
+          REPO: ${{ github.event.pull_request.head.repo.full_name || github.repository }}
+          HEAD_SHA: ${{ github.event.pull_request.head.sha || github.sha }}
+          HOME: ${{ runner.temp }}/plugin-home
+          XDG_CONFIG_HOME: ${{ runner.temp }}/plugin-home/.config
+          XDG_CACHE_HOME: ${{ runner.temp }}/plugin-home/.cache
+          XDG_DATA_HOME: ${{ runner.temp }}/plugin-home/.local/share
+          XDG_STATE_HOME: ${{ runner.temp }}/plugin-home/.local/state
+          XDG_RUNTIME_DIR: ${{ runner.temp }}/plugin-home/.run
+        run: |
+          set -euo pipefail
+          export PATH="$HOME/.opencode/bin:$PATH"
+          opencode plugin add "github:${REPO}#${HEAD_SHA}"
+          package="$(node -p "require('./package.json').name")"
+          case "$package" in
+            @we-the-rebel-alliance/*-plugin) ;;
+            *) echo "package.json names $package, not an @we-the-rebel-alliance/<name>-plugin" >&2; exit 1 ;;
+          esac
+          entry="$(find "$HOME/.cache/opencode/npm" -path "*/node_modules/$package/dist/index.js" -print -quit)"
+          test -n "$entry" || { echo "the installed package $package carries no dist/index.js" >&2; exit 1; }
+          echo "the installed package $package carries $entry"
