@@ -32,6 +32,41 @@ test("the template's skill is checked, with its frontmatter name, folded descrip
   assert.equal(skill.path, join(root, "skills", "example", "SKILL.md"))
 })
 
+test("YAML block scalars are folded, literal or stripped as YAML specifies", () => {
+  const cases: readonly [string, string, string][] = [
+    ["folded", ">", "first line second line\n"],
+    ["literal", "|", "first line\nsecond line\n"],
+    ["folded-strip", ">-", "first line second line"],
+    ["literal-strip", "|-", "first line\nsecond line"],
+  ]
+  for (const [name, marker, expected] of cases) {
+    const directory = fixture({ [name]: `---\nname: ${name}\ndescription: ${marker}\n  first line\n  second line\n---\n\n# Body\n` })
+    try {
+      assert.equal(readSkills(directory)[0]?.description, expected, name)
+    } finally {
+      rmSync(directory, { recursive: true, force: true })
+    }
+  }
+  const empty = fixture({ empty: "---\nname: empty\ndescription: >\n---\n\n# Body\n" })
+  try {
+    assert.throws(() => readSkills(empty), /has no frontmatter description/)
+  } finally {
+    rmSync(empty, { recursive: true, force: true })
+  }
+  const marker = fixture({ marker: "---\nname: marker\ndescription: '>'\n---\n\n# Body\n" })
+  try {
+    assert.throws(() => readSkills(marker), /only a block marker/)
+  } finally {
+    rmSync(marker, { recursive: true, force: true })
+  }
+  const broken = fixture({ broken: "---\nname: broken\ndescription: [unclosed\n---\n\n# Body\n" })
+  try {
+    assert.throws(() => readSkills(broken), /has frontmatter that is not valid YAML/)
+  } finally {
+    rmSync(broken, { recursive: true, force: true })
+  }
+})
+
 test("a skill file must have the frontmatter shape the plugin registers", () => {
   const cases: readonly [string, Readonly<Record<string, string>>, RegExp][] = [
     ["no frontmatter", { broken: "# Broken\n" }, /SCHEMA_VIOLATION: skills\/broken\/SKILL.md has no frontmatter\. Next step: /],

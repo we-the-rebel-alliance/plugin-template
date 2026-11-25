@@ -1,5 +1,5 @@
 import assert from "node:assert/strict"
-import { mkdtempSync, readdirSync, rmSync } from "node:fs"
+import { mkdtempSync, readFileSync, readdirSync, rmSync } from "node:fs"
 import { tmpdir } from "node:os"
 import { join } from "node:path"
 import { test } from "node:test"
@@ -8,6 +8,7 @@ import { OpenCode } from "@opencode/sdk"
 import type { Plugin } from "@opencode/plugin"
 import { load, resolve } from "@opencode/plugin/host"
 import { waitForActivation } from "@we-the-rebel-alliance/plugin-contract/kit"
+import { parse as parseYaml } from "yaml"
 
 const root = fileURLToPath(new URL("../..", import.meta.url))
 
@@ -67,9 +68,17 @@ test("the real OpenCode 2.4.1 host registers every skills/<name>/SKILL.md after 
         const skill = answer.data.find((candidate) => candidate.id === id)
         assert.ok(skill !== undefined, `the host did not register the ${id} skill`)
         assert.equal(skill.name, id)
-        assert.ok((skill.description ?? "").trim().length > 0, `the ${id} skill has no description`)
         assert.equal(skill.path, join(root, "skills", id, "SKILL.md"))
         assert.ok(skill.content.trim().length > 0, `the ${id} skill has no body`)
+        const text = readFileSync(skill.path, "utf8")
+        const frontmatter = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text)
+        assert.ok(frontmatter !== null, `the ${id} skill has no frontmatter`)
+        const parsed = parseYaml(frontmatter[1] ?? "") as { readonly description?: unknown }
+        assert.equal(typeof parsed.description, "string", `the ${id} skill has no YAML description`)
+        const expected = parsed.description as string
+        assert.notEqual(expected.trim(), "", `the ${id} skill has an empty description`)
+        for (const marker of [">", "|", ">-", "|-", ">+", "|+"]) assert.notEqual(expected.trim(), marker, `the ${id} skill registers the block marker ${marker}, not its text`)
+        assert.equal(skill.description, expected, `the ${id} skill description is not the YAML text`)
       }
     } finally {
       await host.close()

@@ -9,6 +9,7 @@ import { readdirSync, readFileSync, type Dirent } from "node:fs"
 import { join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { Skill, type Plugin } from "@opencode/plugin"
+import { parse as parseYaml } from "yaml"
 
 /** One checked skill, ready to register. */
 export interface SkillFile {
@@ -37,34 +38,29 @@ interface Frontmatter {
 }
 
 /**
- * The frontmatter fields this plugin checks and the Markdown body. A `>` or `|` block is folded or kept, as YAML
- * describes, because a skill description commonly wraps over lines.
+ * The frontmatter fields this plugin checks and the Markdown body. The frontmatter is parsed as YAML, so `>`, `|`
+ * and their chomping variants fold or keep the description exactly as the skill author wrote it; a parser that reads
+ * only the first line would register `>` as the description.
  */
 function frontmatter(text: string, file: string): Frontmatter {
   const match = /^---\r?\n([\s\S]*?)\r?\n---(?:\r?\n|$)/.exec(text)
   if (match === null) throw invalid(file, "has no frontmatter")
-  const lines = match[1]!.split(/\r?\n/)
-  const fields = new Map<string, string>()
-  for (let index = 0; index < lines.length; index += 1) {
-    const line = lines[index]!
-    if (line.trim() === "" || line.trimStart().startsWith("#") || /^\s/.test(line)) continue
-    const field = /^([A-Za-z][A-Za-z0-9_-]*):\s*(.*)$/.exec(line)
-    if (field === null) continue
-    let value = field[2]!.trim()
-    if (value === ">" || value === "|" || value === ">-" || value === "|-") {
-      const folded = value.startsWith(">")
-      const block: string[] = []
-      while (index + 1 < lines.length && (/^\s/.test(lines[index + 1]!) || lines[index + 1]!.trim() === "")) {
-        index += 1
-        block.push(lines[index]!.trim())
-      }
-      value = folded ? block.join(" ").trim() : block.join("\n").trim()
-    } else if (value.length >= 2 && ((value.startsWith('"') && value.endsWith('"')) || (value.startsWith("'") && value.endsWith("'")))) {
-      value = value.slice(1, -1)
-    }
-    fields.set(field[1]!, value)
+  let data: unknown
+  try {
+    data = parseYaml(match[1] ?? "")
+  } catch (cause) {
+    const message = cause instanceof Error ? cause.message.split("\n")[0] : String(cause)
+    throw invalid(file, `has frontmatter that is not valid YAML: ${message}`)
   }
-  return { name: fields.get("name"), description: fields.get("description"), content: text.slice(match[0].length).trim() }
+  if (typeof data !== "object" || data === null || Array.isArray(data)) throw invalid(file, "has frontmatter that is not a mapping")
+  const fields = data as Record<string, unknown>
+  if (fields.name !== undefined && typeof fields.name !== "string") throw invalid(file, "has a frontmatter name that is not text")
+  if (fields.description !== undefined && typeof fields.description !== "string") throw invalid(file, "has a frontmatter description that is not text")
+  return {
+    name: fields.name,
+    description: fields.description,
+    content: text.slice(match[0].length).trim(),
+  }
 }
 
 /** Read and check every `skills/<name>/SKILL.md` below `directory`, sorted by id. */
@@ -91,7 +87,10 @@ export function readSkills(directory = SKILLS): SkillFile[] {
     const parsed = frontmatter(text, file)
     if (parsed.name === undefined || parsed.name === "") throw invalid(file, "has no frontmatter name")
     if (parsed.name !== name) throw invalid(file, `names "${parsed.name}", not its directory "${name}"`)
-    if (parsed.description === undefined || parsed.description === "") throw invalid(file, "has no frontmatter description")
+    if (parsed.description === undefined || parsed.description.trim() === "") throw invalid(file, "has no frontmatter description")
+    if (parsed.description.trim() === ">" || parsed.description.trim() === "|" || parsed.description.trim() === ">-" || parsed.description.trim() === "|-") {
+      throw invalid(file, `has the frontmatter description "${parsed.description.trim()}", which is only a block marker; indent the text below it`)
+    }
     if (parsed.content === "") throw invalid(file, "has no content below its frontmatter")
     return { id: name, name: parsed.name, description: parsed.description, path: join(directory, name, "SKILL.md"), content: parsed.content }
   })

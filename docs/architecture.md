@@ -7,7 +7,7 @@
 | Entry | `src/index.ts` | `Plugin.define({ id, setup })`, `assertHost`, the skills, the account wiring and one `register` call |
 | Accounts | `src/accounts.ts` | one vendor MCP server per alias, through the contract's `accounts` module |
 | Manifest | `src/manifest.ts` | reads `package.json` `capabilities`, checks it with the contract's validator and reads the source's `maxBytes` |
-| Skills | `src/skills.ts` | reads every `skills/<name>/SKILL.md`, checks its frontmatter and registers it with `ctx.skill.transform` |
+| Skills | `src/skills.ts` | reads every `skills/<name>/SKILL.md`, parses its YAML frontmatter (including `>` and `|` block scalars), checks it and registers it with `ctx.skill.transform` |
 | Handlers | `src/handlers/` | one handler per method: the input, the answer schema, the description and the work |
 | Provider | `src/provider/client.ts` | the fake MCP vendor: owners, channels, messages, pages, cursors and probes |
 
