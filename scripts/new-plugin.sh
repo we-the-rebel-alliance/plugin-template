@@ -132,6 +132,7 @@ function walk(directory) {
 walk(".")
 
 let changed = 0
+const writes = []
 for (const path of files) {
   let text
   try {
@@ -145,9 +146,11 @@ for (const path of files) {
   next = withoutTemplate(next)
   if (/\btemplate\b/i.test(next)) throw new Error(`${path} still describes the template after the rename`)
   if (next === text) continue
-  writeFileSync(path, next)
+  writes.push([path, next])
   changed += 1
 }
+// Write only after every file passed, so a failed rename leaves the tree as it was.
+for (const [path, next] of writes) writeFileSync(path, next)
 
 // The lockfile's root name is the package name; npm ci reads it.
 if (existsSync("package-lock.json")) {
