@@ -9,24 +9,13 @@ import { readFileSync, rmSync } from "node:fs"
 import { dirname, join } from "node:path"
 import { fileURLToPath } from "node:url"
 import { build } from "esbuild"
+import { bundleOptions } from "./bundle-options.mjs"
 
 const root = join(dirname(fileURLToPath(import.meta.url)), "..")
 const dist = join(root, "dist")
 const pkg = JSON.parse(readFileSync(join(root, "package.json"), "utf8"))
 
 rmSync(dist, { recursive: true, force: true })
-await build({
-  entryPoints: [{ in: join(root, "src", "index.ts"), out: "index" }],
-  outdir: dist,
-  bundle: true,
-  format: "esm",
-  platform: "node",
-  target: "node24",
-  external: ["@opencode/*"],
-  legalComments: "none",
-  logLevel: "warning",
-  // The YAML parser is CommonJS and reads `process` with require(); the bundle is ESM, so give it a real require.
-  banner: { js: `import { createRequire } from "node:module";\nconst require = createRequire(import.meta.url);\n// ${pkg.name} ${pkg.version}. Built by scripts/build.mjs; do not edit.` },
-})
+await build(bundleOptions({ root, pkg }))
 
 console.log(`built ${pkg.name} ${pkg.version} into dist/index.js`)
