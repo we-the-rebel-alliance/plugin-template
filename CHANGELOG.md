@@ -12,7 +12,9 @@
 - Skills: the YAML frontmatter is parsed with `yaml`, so `description: >` and `description: |` register the folded or
   literal text instead of the marker; an empty description or a bare `>`/`|` is refused with a schema error.
 - NOTICE carries the verbatim licences of every package bundled into `dist/`: the contract, `yaml`, and the `zod`
-  that the contract's prebundled dist carries. `npm pack` ships NOTICE and the pack check lists it.
+  that the contract's prebundled dist carries. `npm pack` ships NOTICE and the pack check lists it. The NOTICE test
+  shares the bundle options, follows the contract's own resolution for `zod`, accepts `LICENSE.md`/`LICENCE*` spellings,
+  and rejects unversioned or extra blocks.
 - The fake provider orders its feed by `(occurred_at, external_id)` and keeps that pair in its cursor, so two messages
   at the same time are paged without a skip or a repeat.
 - Tests under `test/unit/`, `test/conformance/` and `test/host/`, a biome lint gate and a pack check.

@@ -23,7 +23,7 @@ npm run check
 | `npm run typecheck` | the sources and tests typecheck under strict settings |
 | `npm run bundle` | `dist/index.js` is bundled from `src/index.ts` with esbuild |
 | `npm test` | the unit tests, the recorded fixture and the `assertHost` gate |
-| `npm run pack` | the tarball holds `package.json`, `dist/index.js`, the skill, the assets, `README.md` and `LICENSE` |
+| `npm run pack` | the tarball holds `package.json`, `dist/index.js`, the skill, the assets, `README.md`, `LICENSE` and `NOTICE` |
 | `plugin-kit check` | conformance T0 and T1, the doc file set, the forbidden patterns and no bundled kit |
 | `plugin-kit docs --check` | every generated doc section matches the manifest |
 
@@ -38,6 +38,11 @@ requires of a git dependency: npm prepares a repository that declares a `build`,
 so the install fails with `git dep preparation failed`. The template therefore has no such script, ships the bundle in
 `dist/`, and CI runs `npm run bundle && git diff --exit-code dist/` so the committed file is exactly the one the sources
 produce. Run `npm run bundle` after changing `src/`, commit the result with the change, and never edit `dist/` by hand.
+
+Every package inlined into `dist/index.js` carries its licence text in `NOTICE`, under one `## <name> <version>
+(<SPDX licence>)` heading per package. `test/unit/notice.test.ts` rebuilds the bundle with the same esbuild options as
+`npm run bundle` and fails when a bundled package is missing from `NOTICE`, when a `NOTICE` block names a package that
+is not inlined, or when a licence text is not verbatim. Add the block when you add a dependency that is bundled.
 
 ## The contract pin
 
